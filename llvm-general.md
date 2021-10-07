@@ -4,6 +4,7 @@ Contents:
 
 ### Generate code for arm/amdgcn on x86
 * arm's --target: https://developer.arm.com/documentation/dui0774/b/compiler-command-line-options/-mcpu
+* amdgcn: https://llvm.org/docs/AMDGPUUsage.html
 * examples:
   ```shell
   clang-13 --target=aarch64-arm-none-eabi -S -O3 -mllvm -print-after-all test.c > test.ll 2>&1
