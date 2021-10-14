@@ -143,7 +143,7 @@ vulkaninfo
     if("${uppercase_CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
       iree_select_compiler_opts(IREE_DEFAULT_COPTS
           CLANG_OR_GCC
-              "-gsplit-dwarf"          
+              "-gsplit-dwarf"
       )
     endif()
     ```
@@ -165,3 +165,14 @@ vulkaninfo
 
     cmake --build /home/cycheng/build/iree/x86.dbg
     ```
+* Comparision:
+  * Binary size of iree-run-mlir
+    * general (dbg): 1.5G
+    * Debug.split-dwarf: 973M
+    * Release + iree_compiler Debug: 337M
+    * Release + iree_compiler Debug.split-dwarf: 260M
+  * incremental build time: modify iree/compiler/Dialect/Flow/IR/FlowOpFolders.cpp
+    * general (dbg): 
+    * Debug.split-dwarf: 0m3.627s
+    * 
+* Ref: https://www.productive-cpp.com/improving-cpp-builds-with-split-dwarf/
