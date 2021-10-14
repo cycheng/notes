@@ -86,13 +86,12 @@ sudo apt install mesa-vulkan-drivers
 # check vulkan driver works properly
 vulkaninfo
 ```
-* build
-
+* build (standard)
 ```shell
 # install ccache (optional)
 sudo apt install -y ccache
 
-cmake -GNinja -B /home/cycheng/build/iree \
+cmake -GNinja -B /home/cycheng/build/iree/x86.rel \
     -S /home/cycheng/iree -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DIREE_ENABLE_ASSERTIONS=ON \
     -DCMAKE_C_COMPILER=clang-12 \
@@ -103,5 +102,36 @@ cmake -GNinja -B /home/cycheng/build/iree \
     -DIREE_HAL_DRIVERS_TO_BUILD="DyLib;VMVX;Vulkan" \
     -DIREE_TARGET_BACKENDS_TO_BUILD="DYLIB-LLVM-AOT;WASM-LLVM-AOT;Vulkan-SPIRV;VMVX"
 
-cmake --build /home/cycheng/build/iree
+cmake --build /home/cycheng/build/iree/x86.rel
 ```
+* build (hacking): build everything with 'Release' mode except iree_compiler
+  * hack iree/compiler/CMakeLists.txt
+    ```cmake
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
+    if(NOT "${uppercase_CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
+      iree_select_compiler_opts(IREE_DEFAULT_COPTS
+          CLANG_OR_GCC
+            "-O0"
+            "-g"
+            "-gsplit-dwarf"
+      )
+    endif()
+    ```
+  * config llvm with 'split-dwarf' and some other options
+    ```shell
+    cmake -GNinja -B /home/cycheng/build/iree/x86.rel-dbg-compiler \
+        -S /home/cycheng/iree -DCMAKE_BUILD_TYPE=Release \
+        -DIREE_ENABLE_ASSERTIONS=ON \
+        -DCMAKE_C_COMPILER=clang-12 \
+        -DCMAKE_CXX_COMPILER=clang++-12 \
+        -DIREE_ENABLE_LLD=ON \
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+        -DIREE_HAL_DRIVERS_TO_BUILD="DyLib;VMVX;Vulkan" \
+        -DIREE_TARGET_BACKENDS_TO_BUILD="DYLIB-LLVM-AOT;WASM-LLVM-AOT;Vulkan-SPIRV;VMVX"
+        -DLLVM_USE_SPLIT_DWARF=ON \
+        -DLLVM_OPTIMIZED_TABLEGEN=ON \
+        -DLLVM_USE_NEWPM=ON
+
+    cmake --build /home/cycheng/build/iree/x86.rel-dbg-compiler
+    ```
