@@ -135,3 +135,33 @@ cmake --build /home/cycheng/build/iree/x86.rel
 
     cmake --build /home/cycheng/build/iree/x86.rel-dbg-compiler
     ```
+* build (hacking): build in 'Debug' mode with better options
+  * hack ./CMakeLists.txt
+    ```cmake
+    # copy paste the following code a line before "include(iree_setup_toolchain)"
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
+    if("${uppercase_CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
+      iree_select_compiler_opts(IREE_DEFAULT_COPTS
+          CLANG_OR_GCC
+              "-gsplit-dwarf"          
+      )
+    endif()
+    ```
+  * config llvm with 'split-dwarf' and some other options
+    ```shell
+    cmake -GNinja -B /home/cycheng/build/iree/x86.dbg \
+        -S /home/cycheng/iree -DCMAKE_BUILD_TYPE=Release \
+        -DIREE_ENABLE_ASSERTIONS=ON \
+        -DCMAKE_C_COMPILER=clang-12 \
+        -DCMAKE_CXX_COMPILER=clang++-12 \
+        -DIREE_ENABLE_LLD=ON \
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+        -DIREE_HAL_DRIVERS_TO_BUILD="DyLib;VMVX;Vulkan" \
+        -DIREE_TARGET_BACKENDS_TO_BUILD="DYLIB-LLVM-AOT;WASM-LLVM-AOT;Vulkan-SPIRV;VMVX"
+        -DLLVM_USE_SPLIT_DWARF=ON \
+        -DLLVM_OPTIMIZED_TABLEGEN=ON \
+        -DLLVM_USE_NEWPM=ON
+
+    cmake --build /home/cycheng/build/iree/x86.dbg
+    ```
