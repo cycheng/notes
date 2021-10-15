@@ -165,14 +165,20 @@ vulkaninfo
 
     cmake --build /home/cycheng/build/iree/x86.dbg
     ```
-* Comparision:
+* Comparision (on i7-6700 4-cores 8-threads 32G-ram):
   * Binary size of iree-run-mlir
     * general (dbg): 1.5G
     * Debug.split-dwarf: 973M
     * Release + iree_compiler Debug: 337M
     * Release + iree_compiler Debug.split-dwarf: 260M
+  * Build iree-run-mlir
+    * general (dbg): 5m3.393s
+    * Debug.split-dwarf:
+    * Release + iree_compiler Debug: 4m34.420s
+    * Release + iree_compiler Debug.split-dwarf:
   * incremental build time: modify iree/compiler/Dialect/Flow/IR/FlowOpFolders.cpp
-    * general (dbg): 
+    * general (dbg): 0m5.966s
     * Debug.split-dwarf: 0m3.627s
-    * 
+    * Release + iree_compiler Debug: 0m2.707s
+    * Release + iree_compiler Debug.split-dwarf: 0m1.400s
 * Ref: https://www.productive-cpp.com/improving-cpp-builds-with-split-dwarf/
