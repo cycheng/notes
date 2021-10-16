@@ -48,3 +48,49 @@ Contents:
         worklist.append(definingOp->operand_begin(), definingOp->operand_end());
       }
     ```
+* Topological sort (visiting)
+  * https://github.com/google/iree/blob/8214b36294f7236622176939068479eeba574e29/iree/compiler/Dialect/Flow/Transforms/DispatchLinalgOnTensors.cpp#L311-L391
+    ```c++
+    /// Reorders the operations in `ops` such that they could be inlined into the
+    /// dispatch region in that order to satisfy dependencies.
+    static SmallVector<Operation *> orderOperations(ArrayRef<Operation *> ops) {
+      llvm::SmallMapVector<Operation *, SmallVector<Operation *>, 16>
+          insertAfterMap;
+      llvm::SetVector<Operation *> opSet(ops.begin(), ops.end());
+      llvm::SetVector<Operation *> leafOps(ops.begin(), ops.end());
+      for (auto op : ops) {
+        for (auto operand : op->getOperands()) {
+          auto definingOp = operand.getDefiningOp();
+          if (!definingOp || !opSet.count(definingOp)) continue;
+          insertAfterMap[definingOp].push_back(op);
+          if (leafOps.count(op)) leafOps.remove(op);
+        }
+      }
+
+      SmallVector<Operation *> orderedOps(leafOps.begin(), leafOps.end());
+      orderedOps.reserve(ops.size());
+      llvm::SmallPtrSet<Operation *, 16> processed;
+      processed.insert(leafOps.begin(), leafOps.end());
+
+      ArrayRef<Operation *> readyOps(orderedOps);
+      size_t startPos = 0;
+      while (!readyOps.empty()) {
+        auto op = readyOps.front();
+        startPos++;
+        for (auto insertAfterOp : insertAfterMap[op]) {
+          if (processed.count(insertAfterOp)) continue;
+          if (llvm::all_of(insertAfterOp->getOperands(), [&](Value operand) {
+                Operation *operandDefiningOp = operand.getDefiningOp();
+                return !operandDefiningOp || !opSet.count(operandDefiningOp) ||
+                       processed.count(operandDefiningOp);
+              })) {
+            orderedOps.push_back(insertAfterOp);
+            processed.insert(insertAfterOp);
+          }
+        }
+        readyOps = ArrayRef<Operation *>(orderedOps).drop_front(startPos);
+      }
+      return orderedOps;
+    }
+    ```
+
