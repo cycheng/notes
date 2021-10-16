@@ -25,25 +25,26 @@ Contents:
   ```
 
 * Traverse value recursively
-  ```c++
-  static void getUsedValuesDefinedAboveAfterCloningOps(
-      OpBuilder &builder, IREE::Flow::DispatchWorkgroupsOp dispatchOp,
-      llvm::SetVector<Value> &valuesDefinedAbove) {
-    llvm::SmallVector<Operation *> clonedOps;
-    llvm::SetVector<Value> visited;
-    SmallVector<Value, 4> worklist;
-    worklist.assign(valuesDefinedAbove.begin(), valuesDefinedAbove.end());
-    valuesDefinedAbove.clear();
-    while (!worklist.empty()) {
-      Value outsideValue = worklist.pop_back_val();
-      if (visited.count(outsideValue)) continue;
-      visited.insert(outsideValue);
-      Operation *definingOp = outsideValue.getDefiningOp();
-      if (!definingOp || !(isClonableIntoDispatchOp(definingOp))) {
-        valuesDefinedAbove.insert(outsideValue);
-        continue;
+  * https://github.com/google/iree/blob/8214b36294f7236622176939068479eeba574e29/iree/compiler/Dialect/Flow/Transforms/DispatchLinalgOnTensors.cpp#L396-L415
+    ```c++
+    static void getUsedValuesDefinedAboveAfterCloningOps(
+        OpBuilder &builder, IREE::Flow::DispatchWorkgroupsOp dispatchOp,
+        llvm::SetVector<Value> &valuesDefinedAbove) {
+      llvm::SmallVector<Operation *> clonedOps;
+      llvm::SetVector<Value> visited;
+      SmallVector<Value, 4> worklist;
+      worklist.assign(valuesDefinedAbove.begin(), valuesDefinedAbove.end());
+      valuesDefinedAbove.clear();
+      while (!worklist.empty()) {
+        Value outsideValue = worklist.pop_back_val();
+        if (visited.count(outsideValue)) continue;
+        visited.insert(outsideValue);
+        Operation *definingOp = outsideValue.getDefiningOp();
+        if (!definingOp || !(isClonableIntoDispatchOp(definingOp))) {
+          valuesDefinedAbove.insert(outsideValue);
+          continue;
+        }
+        clonedOps.push_back(definingOp);
+        worklist.append(definingOp->operand_begin(), definingOp->operand_end());
       }
-      clonedOps.push_back(definingOp);
-      worklist.append(definingOp->operand_begin(), definingOp->operand_end());
-    }
-  ```
+    ```
