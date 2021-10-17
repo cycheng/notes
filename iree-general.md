@@ -1,6 +1,7 @@
 Contents:
 =========
 * Linalg ElementWise fusion (affine map)
+* mmt4d
 * Build IREE
 
 ### Linalg ElementWise fusion (affine map)
@@ -65,6 +66,41 @@ func @elementwise() {
 
          => %arg2[i, j] -> %arg2[j]
 ```
+
+### mmt4d
+* https://google.github.io/iree/blog/2021-10-13-mmt4d/
+  ```python
+  def pack_2d_4d(operand, parallel_size, reduction_size):
+   i1 = operand.shape[0] // parallel_size # M1
+   i2 = parallel_size    # M0
+   j1 = operand.shape[1] // reduction_size # K1
+   j2 = reduction_size   # K0
+   operand_4d = np.reshape(operand, [i1, i2, j1, j2])
+   return np.transpose(operand_4d, [0, 2, 1, 3]) # [M1, K1, M0, K0]
+  ```
+  * operand_4d = np.reshape(operand, [i1, i2, j1, j2])
+    * Original: 2D data with size MxN
+    * Reshape to: 4D data with: 
+      * i1 rows in dim0
+      * For each row in dim0, there are i2 rows in dim1
+      * For each row in dim1, there are j1 columns in dim2
+      * For each column in dim2, there are j2 elements
+      * E.g.
+      ```mlir
+      0 1 2 3    0 1 2 3    |0 1|2 3|   |0|1|
+      4 5 6 7    -------
+      -------    4 5 6 7
+      8 9 a b
+      c d e f
+      ```
+  * np.transpose(operand_4d, [0, 2, 1, 3])
+    * Transpose dim 1 and 2, e.g.
+      ```mlir
+      0 1 | 2 3    0 1 | 4 5
+      ----+----    ----+----
+      4 5 | 6 7    2 3 | 6 7
+      ----+----    ----+----
+      ```
 
 ### Build IREE on Ubuntu (Test on 18.04)
 * Install llvm/clang
