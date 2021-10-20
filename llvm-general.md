@@ -1,7 +1,7 @@
 Contents:
 =========
-* Code: New pass manager add pass method
-* Generate code for arm/amdgcn on x86
+* [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
+* [Generate code for arm/amdgcn on x86]()
 
 ### Code: New pass manager add pass method
 
