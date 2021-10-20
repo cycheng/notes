@@ -27,6 +27,10 @@ Contents:
        // Do not use make_unique or emplace_back, they cause too many template
        // instantiations, causing terrible compile times.
        Passes.push_back(std::unique_ptr<PassConceptT>(
+  ```
+  => If Pass is rvalue, forward the rvalue to PassModelT, else use lvalue, see the
+     exammple in [c++ forward](https://www.cplusplus.com/reference/utility/forward/)
+  ```c++
            new PassModelT(std::forward<PassT>(Pass))));
      }
      
