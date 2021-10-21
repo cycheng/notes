@@ -4,6 +4,7 @@ Contents:
 * HowTo:
   * Dump region (function) / block in gdb
   * Traverse value recursively
+  * Convert TOSA reshape -> linalg reshape
 
 ### Base class
 * mlir::Value
@@ -93,4 +94,37 @@ Contents:
       return orderedOps;
     }
     ```
+* Convert TOSA reshape -> linalg reshape
+  * [source](https://github.com/llvm/llvm-project/blob/db0486c46fe187475e4b01a401e14b2def593733/mlir/lib/Conversion/TosaToLinalg/TosaToLinalg.cpp#L1607-L1633)
+    ```cpp
+      auto getIdentityExprs = [&rewriter](int n) {
+        SmallVector<AffineExpr, 4> exprs;
+        for (int i = 0; i < n; ++i)
+          exprs.push_back(rewriter.getAffineDimExpr(i));
+        return exprs;
+      };
+      Location loc = reshape.getLoc();
+      int64_t totalElems =
+          std::accumulate(expandedShape.begin(), expandedShape.end(), 1,
+                          std::multiplies<int64_t>());
+      auto elemTy = operandTy.getElementType();
+      SmallVector<ReassociationExprs, 4> collapsingMap = {
+          // Use operandTy here because we need to collapse all operands
+          // dimensions.
+          getIdentityExprs(operandTy.getShape().size())};
+      SmallVector<ReassociationExprs, 4> expandingMap = {
+          // Use resultTy here because we need to expand to all result
+          // dimensions.
+          getIdentityExprs(resultTy.getShape().size())};
 
+      auto collapsedTy = RankedTensorType::get({totalElems}, elemTy);
+      Value collapsedOp = rewriter.create<linalg::TensorCollapseShapeOp>(
+          loc, collapsedTy, adaptor.getOperands()[0], collapsingMap);
+    ```
+    collapse to 1 dimension shape first, then expand to required shape.
+    ```c++
+      rewriter.replaceOpWithNewOp<linalg::TensorExpandShapeOp>(
+          reshape, resultTy, collapsedOp, expandingMap);
+
+      return success();
+    ```
