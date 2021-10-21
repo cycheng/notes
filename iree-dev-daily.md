@@ -1,14 +1,37 @@
 
 Working on https://github.com/google/iree/issues/6903
 
-#### Oct 21
 * Original:
   ```mlir
   %42 = flow.tensor.slice %41[%c0, %c20 for %c1, %c10] : tensor<1x40xf32> -> tensor<1x10xf32>
   %43 = flow.tensor.reshape %42 : tensor<1x10xf32> -> tensor<10xf32>
   ...
   %49 = flow.dispatch.workgroups[%c10, %c1, %c1](%43, %44, %46, %48) ...
+      ..
+      %63 = flow.dispatch.tensor.load %arg2, offsets = [%arg7], sizes = [%62], strides = [1]
+      %67 = flow.dispatch.tensor.load %arg4, offsets = [%arg7], sizes = [%66], strides = [1]
+      %69 = flow.dispatch.tensor.load %arg5, offsets = [%arg7], sizes = [%68], strides = [1]
   ```
+
+#### Oct 22
+* Create a reshape to reshape %41 tensor<1x40xf32> -> tensor<40xf32>
+* works!!
+  ```mlir
+  %4x = flow.tensor.reshape %41 : tensor<1x40xf32> -> tensor<40xf32>
+  %49 = flow.dispatch.workgroups[%c10, %c1, %c1](%4x, %44) ...
+  ```
+  ```mlir
+          %0 = hal.interface.binding.subspan @io::@s0b0_ro_external[%c0] : !flow.dispatch.tensor<readonly:10xf32>
+          %1 = hal.interface.binding.subspan @io::@s0b1_ro_external[%c0] : !flow.dispatch.tensor<readonly:40xf32>
+          %2 = hal.interface.binding.subspan @io::@s0b2_xw_external[%c0] : !flow.dispatch.tensor<writeonly:10xf32>
+          %3 = flow.dispatch.tensor.load %1, offsets = [], sizes = [], strides = [] : !flow.dispatch.tensor<readonly:40xf32> -> tensor<40xf32>
+          ..
+            %7 = tensor.extract_slice %3[%arg0] [%6] [1] : tensor<40xf32> to tensor<?xf32>
+            %11 = tensor.extract_slice %3[%arg0] [%10] [1] : tensor<40xf32> to tensor<?xf32>
+            ..
+  ```
+
+#### Oct 21
 * Directly use %41 in the flow.dispatch.workgroups with required reshape:
   ```mlir
   func @main_dispatch_13() {
