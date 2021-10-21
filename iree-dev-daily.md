@@ -1,6 +1,28 @@
 
 Working on https://github.com/google/iree/issues/6903
 
+#### Oct 21
+* Original:
+  ```mlir
+  %42 = flow.tensor.slice %41[%c0, %c20 for %c1, %c10] : tensor<1x40xf32> -> tensor<1x10xf32>
+  %43 = flow.tensor.reshape %42 : tensor<1x10xf32> -> tensor<10xf32>
+  ...
+  %49 = flow.dispatch.workgroups[%c10, %c1, %c1](%43, %44, %46, %48) ...
+  ```
+* Directly use %41 in the flow.dispatch.workgroups with required reshape:
+  ```mlir
+  func @main_dispatch_13() {
+    ..
+    %0 = hal.interface.binding.subspan @io::@s0b0_ro_external[%c0] : memref<10xf32>
+    %1 = hal.interface.binding.subspan @io::@s0b1_ro_external[%c0] : memref<1x40xf32>
+    %2 = hal.interface.binding.subspan @io::@s0b2_xw_external[%c0] : memref<10xf32>
+    %3 = memref.collapse_shape %1 [[0, 1]] : memref<1x40xf32> into memref<40xf32>
+  ```
+  
+  but get an error: failed to materialize conversion for result #0 of operation 'hal.interface.binding.subspan' that remained live after conversion
+  because of %1 is still used by %3.
+
+
 #### Oct 12
 
 * pull in slice into dispatch region
