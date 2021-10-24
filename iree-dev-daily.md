@@ -33,6 +33,26 @@ Working on https://github.com/google/iree/issues/6903
           %13 = tensor.extract_slice %3[%arg3] [%12] [1] : tensor<10xf32> to tensor<?xf32>
 
   ```
+* patch
+  ```cpp
+    ImplicitLocOpBuilder b(dispatchOp.getLoc(), rewriter);
+    // convert from flow.tensor.slice to (mlir) tensor.extract_slice, the stride is always one
+    Value one = b.create<arith::ConstantIndexOp>(1);
+    
+    for (auto iter : sliceGroups) {
+      for (auto sliceOp : iter.getSecond()) {
+        SmallVector<Value, 4> strides(sliceOp.lengths().size(), one);
+        Operation *reshapeOp = *sliceOp.getResult().getUsers().begin();
+
+        auto tslice = b.create<tensor::ExtractSliceOp>(
+            reshapeOp->getResult(0).getType().cast<RankedTensorType>(),
+            sliceOp.source(), sliceOp.start_indices(), sliceOp.lengths(),
+            strides);
+
+        size_t id = argIdx[iter.getFirst()][idx++];
+        block.getArgument(id).replaceAllUsesWith(tslice);
+```
+
 
 #### Oct 22
 * Create a reshape to reshape %41 tensor<1x40xf32> -> tensor<40xf32>
