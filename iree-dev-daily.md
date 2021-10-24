@@ -13,6 +13,27 @@ Working on https://github.com/google/iree/issues/6903
       %69 = flow.dispatch.tensor.load %arg5, offsets = [%arg7], sizes = [%68], strides = [1]
   ```
 
+#### Oct 24
+* Create tensor.extract_slice with reduced rank in dispatchOp
+* works!!
+  ```mlir
+      func @main_dispatch_13(%arg0: !flow.dispatch.tensor<readonly:10xf32>, 
+                             %arg1: !flow.dispatch.tensor<readonly:1x40xf32>, 
+                             %arg2: !flow.dispatch.tensor<writeonly:10xf32>) {
+        ..
+        %0 = flow.dispatch.tensor.load %arg1, offsets = [], sizes = [], strides = [] : !flow.dispatch.tensor<readonly:1x40xf32> -> tensor<1x40xf32>
+        %1 = tensor.extract_slice %0[0, 20] [1, 10] [1, 1] : tensor<1x40xf32> to tensor<10xf32>
+        %2 = tensor.extract_slice %0[0, 10] [1, 10] [1, 1] : tensor<1x40xf32> to tensor<10xf32>
+        %3 = tensor.extract_slice %0[0, 0] [1, 10] [1, 1] : tensor<1x40xf32> to tensor<10xf32>
+        scf.for %arg3 = %4 to %c10 step %5 {
+          %6 = affine.min #map10(%workgroup_size_0, %arg3)
+          %7 = tensor.extract_slice %1[%arg3] [%6] [1] : tensor<10xf32> to tensor<?xf32>
+          ..
+          %11 = tensor.extract_slice %2[%arg3] [%10] [1] : tensor<10xf32> to tensor<?xf32>
+          %13 = tensor.extract_slice %3[%arg3] [%12] [1] : tensor<10xf32> to tensor<?xf32>
+
+  ```
+
 #### Oct 22
 * Create a reshape to reshape %41 tensor<1x40xf32> -> tensor<40xf32>
 * works!!
