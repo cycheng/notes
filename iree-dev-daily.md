@@ -51,8 +51,7 @@ Working on https://github.com/google/iree/issues/6903
 
         size_t id = argIdx[iter.getFirst()][idx++];
         block.getArgument(id).replaceAllUsesWith(tslice);
-```
-
+  ```
 
 #### Oct 22
 * Create a reshape to reshape %41 tensor<1x40xf32> -> tensor<40xf32>
