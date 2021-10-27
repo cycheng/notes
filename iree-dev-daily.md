@@ -1,10 +1,12 @@
 
-Working on https://github.com/google/iree/issues/7014
+#### Oct 27
+Working on https://reviews.llvm.org/D112110
+
 #### Oct 26
+Working on https://github.com/google/iree/issues/7014
 
 
 Working on https://github.com/google/iree/issues/6903
-
 * Original:
   ```mlir
   %42 = flow.tensor.slice %41[%c0, %c20 for %c1, %c10] : tensor<1x40xf32> -> tensor<1x10xf32>
