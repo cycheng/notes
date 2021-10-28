@@ -18,13 +18,25 @@ Contents:
 
 ### Affine
 ##### affine.min
-```mlir
-%0 = affine.min affine_map<(d0)[s0] -> (1000, d0 + 512, s0)> (%arg0)[%arg1]
-```
-* _applies an affine mapping to a list of SSA values, and returns the minimum value of all result expressions._
-* %0 = min(1000, %arg0 + 512, %arg1)
-* 'd': dimension
-* 's': a SSA symbol
+* Example 1:
+  ```mlir
+  %0 = affine.min affine_map<(d0)[s0] -> (1000, d0 + 512, s0)> (%arg0)[%arg1]
+  ```
+  * _applies an affine mapping to a list of SSA values, and returns the minimum value of all result expressions._
+  * %0 = min(1000, %arg0 + 512, %arg1)
+  * 'd': dimension
+  * 's': a SSA symbol
+* [Example 2:](https://llvm.discourse.group/t/representing-tiling-on-tensors-parallelism/4575)
+  ```mlir
+  #map1 = affine_map<(d0)[s0, s1] -> (s0, -d0 + s1)>
+  %1 = linalg.init_tensor [..] : tensor<?xf32>
+  %2 = tensor.dim %1, %c0 : tensor<?xf32>
+  %3 = scf.for %iv = %c to %2 step %t iter_args(%arg0 = %1) {
+         %4 = affine_min #map1(%iv)[%t, %2]
+         %5 = tensor.extract_slice %0[%iv] [%4] [1] : tensor<?xf32> to tensor<?xf32>
+  ```
+  * %4 = min(%t, -%iv + %2): try to determine the size of slice
+  * tensor.extract_slice %tensor[%offset] [%size] [%stride]
 
 ### HowTo:
 ##### Dump region (function) / block 
