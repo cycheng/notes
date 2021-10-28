@@ -2,9 +2,10 @@ Contents:
 =========
 * [Base class](#base-class)
 * [HowTo:](#howto)
-  * Dump region (function) / block in gdb
-  * Traverse value recursively
-  * Convert TOSA reshape -> linalg reshape
+  * [Dump region (function) / block in gdb](#dump-region-function--block)
+  * [Traverse value recursively](#traverse-value-recursively)
+  * [Topological sort (visiting)](#topological-sort-visiting)
+  * [Convert TOSA reshape -> linalg reshape](#convert-tosa-reshape---linalg-reshape)
 
 ### Base class
 * mlir::Value
