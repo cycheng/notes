@@ -2,7 +2,7 @@ Contents:
 =========
 * [Base class](#base-class)
 * [Affine](#affine)
-  * [affine.min](#affine.min)
+  * [affine.min](#affinemin)
 * [HowTo:](#howto)
   * [Dump region (function) / block in gdb](#dump-region-function--block)
   * [Traverse value recursively](#traverse-value-recursively)
