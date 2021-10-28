@@ -1,7 +1,7 @@
 Contents:
 =========
-* Base class
-* HowTo:
+* [Base class](#base-class)
+* [HowTo:](#howto)
   * Dump region (function) / block in gdb
   * Traverse value recursively
   * Convert TOSA reshape -> linalg reshape
@@ -14,7 +14,7 @@ Contents:
   * An SSA value is either a BlockArgument or the result of an operation
 
 ### HowTo:
-* Dump region (function) / block 
+##### Dump region (function) / block 
   * b is a mlir::OpBuilder
   ```shell
   # dump a block
@@ -25,7 +25,7 @@ Contents:
   (gdb) p b.getBlock()->getParent()->getParentRegion()->getParentOp()->dump()
   ```
 
-* Traverse value recursively
+##### Traverse value recursively
   * https://github.com/google/iree/blob/8214b36294f7236622176939068479eeba574e29/iree/compiler/Dialect/Flow/Transforms/DispatchLinalgOnTensors.cpp#L396-L415
     ```c++
     static void getUsedValuesDefinedAboveAfterCloningOps(
@@ -49,7 +49,7 @@ Contents:
         worklist.append(definingOp->operand_begin(), definingOp->operand_end());
       }
     ```
-* Topological sort (visiting)
+##### Topological sort (visiting)
   * https://github.com/google/iree/blob/8214b36294f7236622176939068479eeba574e29/iree/compiler/Dialect/Flow/Transforms/DispatchLinalgOnTensors.cpp#L311-L391
     ```c++
     /// Reorders the operations in `ops` such that they could be inlined into the
@@ -94,7 +94,7 @@ Contents:
       return orderedOps;
     }
     ```
-* Convert TOSA reshape -> linalg reshape
+##### Convert TOSA reshape -> linalg reshape
   * [source](https://github.com/llvm/llvm-project/blob/db0486c46fe187475e4b01a401e14b2def593733/mlir/lib/Conversion/TosaToLinalg/TosaToLinalg.cpp#L1607-L1633)
     ```cpp
       auto getIdentityExprs = [&rewriter](int n) {
