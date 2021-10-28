@@ -1,6 +1,8 @@
 Contents:
 =========
 * [Base class](#base-class)
+* [Affine](#affine)
+  * [affine.min](#affine.min)
 * [HowTo:](#howto)
   * [Dump region (function) / block in gdb](#dump-region-function--block)
   * [Traverse value recursively](#traverse-value-recursively)
@@ -13,6 +15,16 @@ Contents:
     * owner by a block (BlockArgument)
     * owner by a Operation (OpResult)
   * An SSA value is either a BlockArgument or the result of an operation
+
+### Affine
+##### affine.min
+```mlir
+%0 = affine.min affine_map<(d0)[s0] -> (1000, d0 + 512, s0)> (%arg0)[%arg1]
+```
+* _applies an affine mapping to a list of SSA values, and returns the minimum value of all result expressions._
+* %0 = min(1000, %arg0 + 512, %arg1)
+* 'd': dimension
+* 's': a SSA symbol
 
 ### HowTo:
 ##### Dump region (function) / block 
