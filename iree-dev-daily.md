@@ -1,4 +1,42 @@
 
+#### Nov 1
+Working on https://github.com/google/iree/issues/7014
+
+* iree/compiler/Dialect/VM/IR/VMOps.td
+  ```tablegen
+  def VM_ListAllocOp :
+      VM_PureOp<"list.alloc", [
+        DeclareOpInterfaceMethods<VM_SerializableOpInterface>,
+        MemoryEffects<[MemAlloc]>,
+      ]> {
+
+    let encoding = [
+      VM_EncOpcode<VM_OPC_ListAlloc>,
+  ..
+
+  def VM_ListResizeOp :
+      VM_Op<"list.resize", [
+        DeclareOpInterfaceMethods<VM_SerializableOpInterface>,
+        MemoryEffects<[MemWrite]>,
+      ]> {
+    let encoding = [
+      VM_EncOpcode<VM_OPC_ListResize>,
+  ```
+* iree/compiler/Dialect/VM/IR/VMOpcodesCore.td
+  ```tablegen
+  def VM_OPC_ListAlloc             : VM_OPC<0x10, "ListAlloc">;
+  def VM_OPC_ListResize            : VM_OPC<0x13, "ListResize">;
+  ```
+* iree/compiler/Dialect/VM/Conversion/VMToEmitC/ConvertVMToEmitC.cpp
+  ```cpp
+    patterns.insert<ListAllocOpConversion>(typeConverter, context,
+                                           vmAnalysisCache);
+
+    patterns.insert<ListOpConversion<IREE::VM::ListResizeOp>>(
+        context, "iree_vm_list_resize", 0, true);
+  ```
+
+
 #### Oct 27
 Working on https://reviews.llvm.org/D112110
 
