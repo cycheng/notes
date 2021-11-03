@@ -4,6 +4,7 @@ Contents:
 * [Affine](#affine)
   * [affine.min](#affinemin)
 * [Discussions:](#discussions)
+  * [Representing tiling on tensors + parallelism](#representing-tiling-on-tensors--parallelism)
 * [HowTo:](#howto)
   * [Dump region (function) / block in gdb](#dump-region-function--block)
   * [Traverse value recursively](#traverse-value-recursively)
@@ -54,6 +55,10 @@ Contents:
   * But in math world, once defined, a variable keeps its value
   * The functional languages have the same use of variables, once they are defined it is not possible to reassign them
     => we would have no for or while loop but rather recursion or some higher order function.
+* [by ftynse](https://llvm.discourse.group/t/representing-tiling-on-tensors-parallelism/4575/23)
+  1. _scf.parallel indicates that its iterations may be executed in parallel (but may be sequentialized, it doesn’t prescribe parallel execution or anything else);_
+  2. _scf.parallel is a multi-for nest, intended to guarantee permutability of individual loops;_
+  3. _scf.parallel has explicit support for reductions via scf.reduce regions whereas scf.for provides secondary induction variables (aka iter_args) that may be used to express reductions that are not necessarily reductions (they can also be used to express, e.g., iterating on parallel containers similarly to llvm::zip where each iteration increments the pointer carried around as iter_args, but the result of the loop is unused)._
 
 ### HowTo:
 ##### Dump region (function) / block 
