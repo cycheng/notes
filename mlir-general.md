@@ -3,6 +3,7 @@ Contents:
 * [Base class](#base-class)
 * [Affine](#affine)
   * [affine.min](#affinemin)
+* [Discussions:](#discussions)
 * [HowTo:](#howto)
   * [Dump region (function) / block in gdb](#dump-region-function--block)
   * [Traverse value recursively](#traverse-value-recursively)
@@ -37,6 +38,22 @@ Contents:
   ```
   * %4 = min(%t, -%iv + %2): try to determine the size of slice
   * tensor.extract_slice %tensor[%offset] [%size] [%stride]
+
+### Discussions:
+##### [Representing tiling on tensors + parallelism](https://llvm.discourse.group/t/representing-tiling-on-tensors-parallelism/4575)
+* [functional programming destructive update?](https://stackoverflow.com/questions/6964233/what-is-a-destructive-update)
+  ```cpp
+  x = 1
+  x = x + 1 (The imperative programming languages)
+
+  x - x = 1 <=> 0 = 1 (math world)
+
+  x2 = x + 1 (functional PL)
+  ```
+  * The second operation is an destructive update
+  * But in math world, once defined, a variable keeps its value
+  * The functional languages have the same use of variables, once they are defined it is not possible to reassign them
+    => we would have no for or while loop but rather recursion or some higher order function.
 
 ### HowTo:
 ##### Dump region (function) / block 
