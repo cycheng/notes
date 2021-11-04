@@ -1,4 +1,55 @@
 
+#### Nov 4
+Working on https://github.com/google/iree/issues/7014
+
+* iree/runtime/call.c
+  ```cpp
+    // Allocate the input and output lists with the required capacity.
+    // A user wanting to avoid dynamic allocations could instead create on-stack
+    // storage for these and use iree_vm_list_initialize instead. This high-level
+    // API keeps things simple, though, and for the frequency of calls through
+    // this interface a few small pooled malloc calls should be fine.
+    iree_allocator_t host_allocator =
+        iree_runtime_session_host_allocator(session);
+    iree_status_t status = iree_vm_list_create(
+        /*element_type=*/NULL, arguments.size, host_allocator, &out_call->inputs);
+    if (iree_status_is_ok(status)) {
+      status = iree_vm_list_create(
+          /*element_type=*/NULL, results.size, host_allocator,
+          &out_call->outputs);
+    }
+  ```
+
+* iree/base/allocator.h
+  ```cpp
+  // Allocates using the iree_allocator_malloc and iree_allocator_free methods.
+  // These will usually be backed by malloc and free.
+  static inline iree_allocator_t iree_allocator_system(void) {
+    iree_allocator_t v = {NULL, iree_allocator_system_ctl};
+    return v;
+  }
+  ```
+
+* iree/base/allocator.c
+  ```cpp
+  IREE_API_EXPORT iree_status_t
+  iree_allocator_system_ctl(void* self, iree_allocator_command_t command,
+                            const void* params, void** inout_ptr) {
+    switch (command) {
+      case IREE_ALLOCATOR_COMMAND_MALLOC:
+      case IREE_ALLOCATOR_COMMAND_CALLOC:
+      case IREE_ALLOCATOR_COMMAND_REALLOC:
+        return iree_allocator_system_alloc(
+            command, (const iree_allocator_alloc_params_t*)params, inout_ptr);
+      case IREE_ALLOCATOR_COMMAND_FREE:
+        return iree_allocator_system_free(inout_ptr);
+      default:
+        return iree_make_status(IREE_STATUS_UNIMPLEMENTED,
+                                "unsupported system allocator command");
+    }
+  }
+```
+
 #### Nov 1
 Working on https://github.com/google/iree/issues/7014
 
