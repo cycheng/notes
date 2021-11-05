@@ -1,6 +1,14 @@
-
-#### Nov 4
+#### Nov 4, 5
 Working on https://github.com/google/iree/issues/7014
+
+Reference code in IREE for this issue:
+
+* iree/runtime/demo/hello_world_explained.c
+  ```cpp
+    iree_runtime_instance_t* instance = NULL;
+    iree_status_t status = iree_runtime_instance_create(
+        &instance_options, iree_allocator_system(), &instance);
+  ```
 
 * iree/runtime/call.c
   ```cpp
@@ -32,23 +40,143 @@ Working on https://github.com/google/iree/issues/7014
 
 * iree/base/allocator.c
   ```cpp
-  IREE_API_EXPORT iree_status_t
-  iree_allocator_system_ctl(void* self, iree_allocator_command_t command,
-                            const void* params, void** inout_ptr) {
-    switch (command) {
-      case IREE_ALLOCATOR_COMMAND_MALLOC:
-      case IREE_ALLOCATOR_COMMAND_CALLOC:
-      case IREE_ALLOCATOR_COMMAND_REALLOC:
-        return iree_allocator_system_alloc(
-            command, (const iree_allocator_alloc_params_t*)params, inout_ptr);
-      case IREE_ALLOCATOR_COMMAND_FREE:
-        return iree_allocator_system_free(inout_ptr);
-      default:
-        return iree_make_status(IREE_STATUS_UNIMPLEMENTED,
-                                "unsupported system allocator command");
+    IREE_API_EXPORT iree_status_t
+    iree_allocator_system_ctl(void* self, iree_allocator_command_t command,
+                              const void* params, void** inout_ptr) {
+      switch (command) {
+        case IREE_ALLOCATOR_COMMAND_MALLOC:
+        case IREE_ALLOCATOR_COMMAND_CALLOC:
+        case IREE_ALLOCATOR_COMMAND_REALLOC:
+          return iree_allocator_system_alloc(
+              command, (const iree_allocator_alloc_params_t*)params, inout_ptr);
+        case IREE_ALLOCATOR_COMMAND_FREE:
+          return iree_allocator_system_free(inout_ptr);
+        default:
+          return iree_make_status(IREE_STATUS_UNIMPLEMENTED,
+                                  "unsupported system allocator command");
+      }
     }
+  ```
+
+* iree/vm/list_test.cc
+  ```cpp
+  // Tests simple variant list usage, mainly just for demonstration.
+  // Stores any heterogeneous element type, equivalent to `!vm.list<?>`.
+  TEST_F(VMListTest, UsageVariant) {
+    iree_vm_type_def_t element_type = iree_vm_type_def_make_variant_type();
+    iree_host_size_t initial_capacity = 123;
+    iree_vm_list_t* list = nullptr;
+    IREE_ASSERT_OK(iree_vm_list_create(&element_type, initial_capacity,
+                                       iree_allocator_system(), &list));
+  ```
+
+* iree/vm/value.h
+  ``` cpp
+  // Defines the type of a primitive value.
+  typedef enum iree_vm_value_type_e {
+    // Not a value type.
+    IREE_VM_VALUE_TYPE_NONE = 0,
+    // int8_t.
+    IREE_VM_VALUE_TYPE_I8 = 1,
+    // int16_t.
+    IREE_VM_VALUE_TYPE_I16 = 2,
+    // int32_t.
+    IREE_VM_VALUE_TYPE_I32 = 3,
+    // int64_t.
+    IREE_VM_VALUE_TYPE_I64 = 4,
+    // float.
+    IREE_VM_VALUE_TYPE_F32 = 5,
+    // double.
+    IREE_VM_VALUE_TYPE_F64 = 6,
+
+    IREE_VM_VALUE_TYPE_MAX = IREE_VM_VALUE_TYPE_F64,
+    IREE_VM_VALUE_TYPE_COUNT = IREE_VM_VALUE_TYPE_MAX + 1,  // used for lookup
+  } iree_vm_value_type_t;
+  ```
+
+* iree/vm/ref.h
+  ```cpp
+  // Defines the type of the reference-counted pointer.
+  // This is used to verify that operations dealing with the variant ref struct
+  // are correct at runtime. We don't allow control over the ref types from the
+  // VM ops and as such we can use the type specified as a safe way to avoid
+  // reinterpreting memory incorrectly.
+  enum iree_vm_ref_type_bits_t {
+    IREE_VM_REF_TYPE_NULL = 0,
+
+    // NOTE: these type values are assigned dynamically right now. Treat them as
+    // opaque and unstable across process invocations.
+
+    // Maximum type ID value. Type IDs are limited to 24-bits.
+    IREE_VM_REF_TYPE_MAX_VALUE = 0x00FFFFFEu,
+
+    // Wildcard type that indicates that a value may be a ref type but of an
+    // unspecified internal type.
+    IREE_VM_REF_TYPE_ANY = 0x00FFFFFFu,
+  };
+  typedef uint32_t iree_vm_ref_type_t;
+  ```
+* iree/vm/type_def.h
+  ```cpp
+  // Describes a type in the type table, mapping from a local module type ID to
+  // either a primitive value type or registered ref type.
+  //
+  // * ?: variant (value_type/ref_type == 0)
+  // * i8: primitive value (value_type != 0)
+  // * !vm.ref<?>: any ref value (ref_type == IREE_VM_REF_TYPE_ANY)
+  // * !vm.ref<!foo>: ref value of type !foo (ref_type > 0)
+  typedef struct iree_vm_type_def_t {
+    iree_vm_value_type_t value_type : 8;
+    iree_vm_ref_type_t ref_type : 24;
+  } iree_vm_type_def_t;
+  ```
+
+* iree/vm/ref.c
+  ```cpp
+  IREE_API_EXPORT void iree_vm_ref_move(iree_vm_ref_t* ref,
+                                        iree_vm_ref_t* out_ref) {
+    // NOTE: ref and out_ref may alias.
+    if (ref == out_ref) {
+      // Source == target; ignore entirely.
+      return;
+    }
+
+    // Reset input ref so it points at nothing.
+    iree_vm_ref_t temp_ref = *ref;
+    memset(ref, 0, sizeof(*ref));
+
+    if (out_ref->ptr != NULL) {
+      // Release existing value.
+      iree_vm_ref_release(out_ref);
+    }
+
+    // Assign ref to out_ref (without incrementing counter).
+    *out_ref = temp_ref;
   }
-```
+  ```
+
+* iree/vm/list.c
+  ```cpp
+    iree_vm_ref_object_t ref_object;
+    iree_allocator_t allocator;
+
+    // Current capacity of the list storage, in elements.
+    iree_host_size_t capacity;
+    // Current count of elements in the list.
+    iree_host_size_t count;
+
+    // Element type stored within the list.
+    iree_vm_type_def_t element_type;
+    // Size of each element in the storage in bytes.
+    iree_host_size_t element_size;
+
+    // Storage mode defining how the storage array is managed.
+    iree_vm_list_storage_mode_t storage_mode;
+    // A flat dense array of elements in the type defined by storage_mode.
+    // For certain storage modes, such as IREE_VM_STORAGE_MODE_REF, special
+    // lifetime management and cleanup logic is required.
+    void* storage;
+  ```
 
 #### Nov 1
 Working on https://github.com/google/iree/issues/7014
