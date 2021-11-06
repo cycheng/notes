@@ -15,7 +15,7 @@ Reference code in IREE for this task:
 * test cmd
 ```shell
 time cmake --build . -t iree-translate
-cd /home/cycheng/build/iree/1.x86.rel_asrt_dbg/iree/vm/test/emitc && /home/cycheng/build/iree/1.x86.rel_asrt_dbg/iree/tools/iree-translate -iree-vm-ir-to-c-module /home/cycheng/iree/iree/vm/test/emitc/../list_ops.mlir -o list_ops.h
+/home/cycheng/build/iree/1.x86.rel_asrt_dbg/iree/tools/iree-translate -iree-vm-ir-to-c-module /home/cycheng/iree/iree/vm/test/emitc/../list_ops.mlir -o list_ops.h
 ```
 
 
