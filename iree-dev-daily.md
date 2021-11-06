@@ -1,5 +1,23 @@
-#### Nov 4, 5
+#### Nov 4, 5, 6
 Working on https://github.com/google/iree/issues/7014
+
+Implement conversion: vm -> emitc.
+Reference code in IREE for this task:
+
+* iree/compiler/Dialect/VM/Conversion/VMToEmitC/ConvertVMToEmitC.cpp
+```cpp
+  patterns.insert<ListAllocOpConversion>(typeConverter, context,
+                                         vmAnalysisCache);
+  patterns.insert<ListOpConversion<IREE::VM::ListReserveOp>>(
+      context, "iree_vm_list_reserve", 0, true);
+```
+
+* test cmd
+```shell
+time cmake --build . -t iree-translate
+cd /home/cycheng/build/iree/1.x86.rel_asrt_dbg/iree/vm/test/emitc && /home/cycheng/build/iree/1.x86.rel_asrt_dbg/iree/tools/iree-translate -iree-vm-ir-to-c-module /home/cycheng/iree/iree/vm/test/emitc/../list_ops.mlir -o list_ops.h
+```
+
 
 Reference code in IREE for this issue:
 
