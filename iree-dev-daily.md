@@ -1,4 +1,7 @@
-#### Nov 4, 5, 6
+#### Nov 4, 5, 6, 7, 8
+Working on https://github.com/google/iree/pull/7524
+* Addresses benvanik's very detailed feedback!
+
 Working on https://github.com/google/iree/issues/7014
 
 Implement conversion: vm -> emitc.
@@ -16,6 +19,10 @@ Reference code in IREE for this task:
 ```shell
 time cmake --build . -t iree-translate
 /home/cycheng/build/iree/1.x86.rel_asrt_dbg/iree/tools/iree-translate -iree-vm-ir-to-c-module /home/cycheng/iree/iree/vm/test/emitc/../list_ops.mlir -o list_ops.h
+
+time cmake --build . -t bytecode_module_test
+./iree/vm/bytecode_module_test
+iree/tools/iree-translate -split-input-file -iree-vm-ir-to-bytecode-module -iree-vm-bytecode-module-output-format=flatbuffer-text /home/cycheng/iree/iree/vm/test/list_ops.mlir -print-ir-after-all
 ```
 
 
