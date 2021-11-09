@@ -1,6 +1,7 @@
-#### Nov 4, 5, 6, 7, 8
+#### Nov 4, 5, 6, 7, 8, 9
 Working on https://github.com/google/iree/pull/7524
 * Addresses benvanik's very detailed feedback!
+* Add testcases
 
 Working on https://github.com/google/iree/issues/7014
 
