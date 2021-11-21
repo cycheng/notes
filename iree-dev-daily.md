@@ -21,10 +21,17 @@ Tracing iree runtime
       /home/cycheng/iree/iree/test/e2e/models/unidirectional_lstm.mlir
   ```
 * [DAG EXECUTION MODEL, WORK STEALING](https://www.cister-labs.pt/summer2017/w3/Parallelism%20-%20Dag%20Model.pdf)
+  * Work and Depth
+    * T1 = Work, The total number of operations executed by a computation
+    * T∞ = Depth, The longest chain of sequential dependencies (critical path)
+      in the parallel DAG, also called as Span.
+
   * Sequential merge sort time complexity: O(nlogn)
     * (Intuitive) https://www.khanacademy.org/computing/computer-science/algorithms/merge-sort/a/analysis-of-merge-sort
   * Parallel merge sort:
     * Merge sort with parallel recursion: O(n)
+      * Work T1 = Θ(nlogn)
+      * Depth T∞ = Θ(n)
       * It has a span of Θ(n), which is only an improvement of Θ(log n) compared to the sequential version 
       * https://en.wikipedia.org/wiki/Merge_sort#Merge_sort_with_parallel_recursion
       
@@ -33,6 +40,11 @@ Tracing iree runtime
     * [other reference](https://stanford.edu/~rezab/classes/cme323/S16/notes/Lecture04/cme323_lec4.pdf) 
   * Sequential buble sort: O(n^2)
   * Parallel bubble sort: O(n)
+  * Greedy Scheduler with Work Stealing
+  * A specialized deque (Double-Ended Queue) with three operations:
+    • Push : Local processor adds newly created tasks
+    • Pop :	Local processor removes task to execute
+    • Steal : Remote processors remove tasks
 
 #### Nov 10
 * えいごとにほんごのべんきょう
