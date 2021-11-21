@@ -4,9 +4,26 @@ Tracing iree runtime
   ```shell
   cd ~/build/iree/0.x86.dbg
   cmake --build . -t iree-run-mlir
-  gdb --args iree/tools/iree-run-mlir --mlir-disable-threading --iree-input-type=mhlo -iree-hal-target-backends=vulkan-spirv -function-input="1x5xf32=[0,1,0,3,4]" -function-input="1x5x2x2xf32=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" /home/cycheng/iree/iree/test/e2e/models/unidirectional_lstm.mlir
   ```
-* reading 
+  ```shell
+  #vulkan-spirv
+  gdb --args iree/tools/iree-run-mlir --iree-input-type=mhlo \
+      -iree-hal-target-backends=vulkan-spirv -function-input="1x5xf32=[0,1,0,3,4]" \
+      -function-input="1x5x2x2xf32=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" \
+      /home/cycheng/iree/iree/test/e2e/models/unidirectional_lstm.mlir
+  ```
+  ```shell
+  #cpu
+  gdb --args iree/tools/iree-run-mlir --iree-input-type=mhlo \
+      -iree-hal-target-backends=dylib-llvm-aot -iree-llvm-embedded-linker-path=lld-12 \
+      -function-input="1x5xf32=[0,1,0,3,4]" \
+      -function-input="1x5x2x2xf32=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" \
+      /home/cycheng/iree/iree/test/e2e/models/unidirectional_lstm.mlir
+  ```
+* DAG EXECUTION MODEL, WORK STEALING
+  https://www.cister-labs.pt/summer2017/w3/Parallelism%20-%20Dag%20Model.pdf
+  * Sequential merge sort time complexity: O(nlogn)
+    * (Intuitive) https://www.khanacademy.org/computing/computer-science/algorithms/merge-sort/a/analysis-of-merge-sort
 
 #### Nov 10
 * えいごとにほんごのべんきょう
