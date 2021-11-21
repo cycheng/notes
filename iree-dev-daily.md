@@ -20,10 +20,19 @@ Tracing iree runtime
       -function-input="1x5x2x2xf32=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" \
       /home/cycheng/iree/iree/test/e2e/models/unidirectional_lstm.mlir
   ```
-* DAG EXECUTION MODEL, WORK STEALING
-  https://www.cister-labs.pt/summer2017/w3/Parallelism%20-%20Dag%20Model.pdf
+* [DAG EXECUTION MODEL, WORK STEALING](https://www.cister-labs.pt/summer2017/w3/Parallelism%20-%20Dag%20Model.pdf)
   * Sequential merge sort time complexity: O(nlogn)
     * (Intuitive) https://www.khanacademy.org/computing/computer-science/algorithms/merge-sort/a/analysis-of-merge-sort
+  * Parallel merge sort:
+    * Merge sort with parallel recursion: O(n)
+      * It has a span of Θ(n), which is only an improvement of Θ(log n) compared to the sequential version 
+      * https://en.wikipedia.org/wiki/Merge_sort#Merge_sort_with_parallel_recursion
+      
+    * Merge sort with parallel merging: Θ(log(n)^3)
+      * https://en.wikipedia.org/wiki/Merge_sort#Merge_sort_with_parallel_merging
+    * [other reference](https://stanford.edu/~rezab/classes/cme323/S16/notes/Lecture04/cme323_lec4.pdf) 
+  * Sequential buble sort: O(n^2)
+  * Parallel bubble sort: O(n)
 
 #### Nov 10
 * えいごとにほんごのべんきょう
