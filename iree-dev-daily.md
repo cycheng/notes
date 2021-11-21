@@ -42,9 +42,9 @@ Tracing iree runtime
   * Parallel bubble sort: O(n)
   * Greedy Scheduler with Work Stealing
   * A specialized deque (Double-Ended Queue) with three operations:
-    • Push : Local processor adds newly created tasks
-    • Pop :	Local processor removes task to execute
-    • Steal : Remote processors remove tasks
+    * Push : Local processor adds newly created tasks
+    * Pop : Local processor removes task to execute
+    * Steal : Remote processors remove tasks
 
 #### Nov 10
 * えいごとにほんごのべんきょう
