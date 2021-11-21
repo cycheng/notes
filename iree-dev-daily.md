@@ -1,4 +1,17 @@
 #### Nov 21
+Software Pipelining
+* https://slideplayer.com/slide/12880544/
+  * Modulo Scheduling
+    * Goal: Compute a schedule for one iteration of the loop so that when it is
+            repeated at regular intervals, no intra-or inter-iteration dependences
+            are violated and no resource conflicts arise.
+    * Basic steps:
+      * compute a lower bound for the initiation interval II
+      * find a schedule
+      * generate the kernel code
+      * generate prologue and epilogue code
+* llvm-project/mlir/lib/Dialect/SCF/Transforms/LoopPipelining.cpp
+
 Tracing iree runtime
 * Test commands:
   ```shell
