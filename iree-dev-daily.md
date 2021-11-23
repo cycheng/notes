@@ -10,6 +10,11 @@ Software Pipelining
       * find a schedule
       * generate the kernel code
       * generate prologue and epilogue code
+* [EECS 583: Advanced Compilers](http://web.eecs.umich.edu/~mahlke/courses/583f18/)
+  * [EECS 583: Advanced Compilers - syllabus](http://web.eecs.umich.edu/~mahlke/courses/583f18/583syllabus.pdf)
+  * [Superblock Scheduling Software Pipelining Intro](http://web.eecs.umich.edu/~mahlke/courses/583f18/lectures/583L12.pdf)
+  * [EECS 583 – Class 13 Modulo Scheduling](http://web.eecs.umich.edu/~mahlke/courses/583f18/lectures/583L13.pdf)
+  * [Modulo scheduling reloaded](http://web.eecs.umich.edu/~mahlke/courses/583f18/lectures/583L15.pdf)
 * llvm-project/mlir/lib/Dialect/SCF/Transforms/LoopPipelining.cpp
 * iree/compiler/Codegen/LLVMGPU/LLVMGPUPipelining.cpp
   ```cpp
