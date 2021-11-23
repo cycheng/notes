@@ -14,7 +14,7 @@ Software Pipelining
   * [EECS 583: Advanced Compilers - syllabus](http://web.eecs.umich.edu/~mahlke/courses/583f18/583syllabus.pdf)
   * [Superblock Scheduling Software Pipelining Intro](http://web.eecs.umich.edu/~mahlke/courses/583f18/lectures/583L12.pdf)
   * [EECS 583 – Class 13 Modulo Scheduling](http://web.eecs.umich.edu/~mahlke/courses/583f18/lectures/583L13.pdf)
-  * [Modulo scheduling reloaded](http://web.eecs.umich.edu/~mahlke/courses/583f18/lectures/583L15.pdf)
+  * [EECS 583 – Class 14 Modulo Scheduling Reloaded](http://web.eecs.umich.edu/~mahlke/courses/583f18/lectures/583L14.pdf)
 * llvm-project/mlir/lib/Dialect/SCF/Transforms/LoopPipelining.cpp
 * iree/compiler/Codegen/LLVMGPU/LLVMGPUPipelining.cpp
   ```cpp
