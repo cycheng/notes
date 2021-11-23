@@ -1,4 +1,4 @@
-#### Nov 21
+#### Nov 21, 22
 Software Pipelining
 * https://slideplayer.com/slide/12880544/
   * Modulo Scheduling
@@ -11,6 +11,15 @@ Software Pipelining
       * generate the kernel code
       * generate prologue and epilogue code
 * llvm-project/mlir/lib/Dialect/SCF/Transforms/LoopPipelining.cpp
+* iree/compiler/Codegen/LLVMGPU/LLVMGPUPipelining.cpp
+  ```cpp
+  struct LLVMGPUPipeliningPass
+      : public LLVMGPUPipeliningBase<LLVMGPUPipeliningPass> {
+    void runOnOperation() override {
+      ..
+      scf::populateSCFLoopPipeliningPatterns(pipeliningPatterns, options);
+      ..
+  ```
 
 Tracing iree runtime
 * Test commands:
