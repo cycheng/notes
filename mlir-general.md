@@ -10,6 +10,8 @@ Contents:
   * [Traverse value recursively](#traverse-value-recursively)
   * [Topological sort (visiting)](#topological-sort-visiting)
   * [Convert TOSA reshape -> linalg reshape](#convert-tosa-reshape---linalg-reshape)
+* [Talks:](#talks)
+  * [2020 LLVM in HPC Workshop: Keynote: MLIR: an Agile Infrastructure for Building a Compiler Ecosystem]()
 
 ### Base class
 * mlir::Value
@@ -175,3 +177,13 @@ Contents:
 
       return success();
     ```
+
+### Talks
+
+##### 2020 LLVM in HPC Workshop: Keynote: MLIR: an Agile Infrastructure for Building a Compiler Ecosystem
+* https://www.youtube.com/watch?v=0bxyZDGs-aA
+* slide: https://llvm-hpc-2020-workshop.github.io/presentations/llvmhpc2020-amini.pdf
+* XLA Scaling: Multi TPUs
+  * Partitioning annotations can also be placed on the inputs, the compiler shard the computation accordingly:
+  * https://youtu.be/0bxyZDGs-aA?t=1651
+
