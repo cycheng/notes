@@ -1,6 +1,6 @@
 Contents:
 =========
-* [Automatic verification of LLVM optimizations]
+* [Automatic verification of LLVM optimizations](#automatic-verification-of-llvm-optimizations)
 * [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
 * [Generate code for arm/amdgcn on x86](#generate-code-for-armamdgcn-on-x86)
 
