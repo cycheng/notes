@@ -1,7 +1,22 @@
 Contents:
 =========
+* [Automatic verification of LLVM optimizations]
 * [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
 * [Generate code for arm/amdgcn on x86](#generate-code-for-armamdgcn-on-x86)
+
+### Automatic verification of LLVM optimizations
+* Online tool:
+  - https://alive2.llvm.org/ce/
+  - https://www.philipzucker.com/z3-rise4fun/
+
+* github
+  - https://github.com/AliveToolkit/alive2
+  - https://github.com/nunoplopes/alive/tree/newsema
+    * https://github.com/nunoplopes/alive/tree/newsema/rise4fun/examples
+
+* Reference:
+  - http://research.tedneward.com/reading/compilers.correctness.html
+
 
 ### Code: New pass manager add pass method
 
