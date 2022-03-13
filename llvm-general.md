@@ -13,6 +13,8 @@ Contents:
   - https://github.com/AliveToolkit/alive2
   - https://github.com/nunoplopes/alive/tree/newsema
     * https://github.com/nunoplopes/alive/tree/newsema/rise4fun/examples
+  - https://github.com/Z3Prover/z3
+    theorem prover
 
 * Thomas B. Jablin's Patch:
   - Fix Side-Conditions in SimplifyCFG for Creating Switches from InstCombine And Mask'd Comparisons
