@@ -14,6 +14,16 @@ Contents:
   - https://github.com/nunoplopes/alive/tree/newsema
     * https://github.com/nunoplopes/alive/tree/newsema/rise4fun/examples
 
+* Thomas B. Jablin's Patch:
+  - Fix Side-Conditions in SimplifyCFG for Creating Switches from InstCombine And Mask'd Comparisons
+    https://reviews.llvm.org/D21417
+    * Teach SimplifyCFG to Create Switches from InstCombine Or Mask'd Comparisons
+      https://reviews.llvm.org/D21397
+    * Reorder SimplifyCFG and SROA?
+      https://reviews.llvm.org/D21315
+    * [ppc] slow code for complex boolean expression
+      https://bugs.llvm.org/show_bug.cgi?id=27555
+
 * Reference:
   - http://research.tedneward.com/reading/compilers.correctness.html
 
