@@ -4,6 +4,8 @@ Contents:
 * [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
 * [Generate code for arm/amdgcn on x86](#generate-code-for-armamdgcn-on-x86)
 * [clang -ftime-trace](#clang--ftime-trace)
+* [TIPs](#tips)
+  * [clone-function](#clone-function) 
 
 ### Automatic verification of LLVM optimizations
 * Online tool:
@@ -128,3 +130,32 @@ Contents:
   }
 
   ```
+
+## TIPs
+
+### clone-function
+* https://github.com/llvm/llvm-project/blob/main/llvm/tools/llvm-reduce/deltas/ReduceArguments.cpp
+  ```c++
+  for (auto *F : Funcs) {
+    ValueToValueMapTy VMap;
+    std::vector<WeakVH> InstToDelete;
+    for (auto &A : F->args())
+      if (!ArgsToKeep.count(&A)) {
+        // By adding undesired arguments to the VMap, CloneFunction will remove
+        // them from the resulting Function
+        VMap[&A] = UndefValue::get(A.getType());
+        for (auto *U : A.users())
+          if (auto *I = dyn_cast<Instruction>(*&U))
+            InstToDelete.push_back(I);
+      }
+    // Delete any (unique) instruction that uses the argument
+    for (Value *V : InstToDelete) {
+      if (!V)
+        continue;
+      auto *I = cast<Instruction>(V);
+      I->replaceAllUsesWith(UndefValue::get(I->getType()));
+      if (!I->isTerminator())
+        I->eraseFromParent();
+    }
+  ```
+
