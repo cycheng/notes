@@ -3,6 +3,7 @@ Contents:
 * [Automatic verification of LLVM optimizations](#automatic-verification-of-llvm-optimizations)
 * [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
 * [Generate code for arm/amdgcn on x86](#generate-code-for-armamdgcn-on-x86)
+* [clang -ftime-trace]
 
 ### Automatic verification of LLVM optimizations
 * Online tool:
@@ -91,4 +92,39 @@ Contents:
   clang-13 --target=amdgcn -S -O3 test.c
   # test global i-sel
   clang-13 --target=aarch64-arm-none-eabi -fglobal-isel -S -O3 test.c
+  ```
+
+### clang -ftime-trace
+
+* https://github.com/llvm-mirror/clang/blob/master/tools/driver/cc1_main.cpp
+  ```cpp
+  if (Clang->getFrontendOpts().TimeTrace) {
+    llvm::timeTraceProfilerInitialize(
+        Clang->getFrontendOpts().TimeTraceGranularity);
+  }
+  
+  ...
+  
+  // If any timers were active but haven't been destroyed yet, print their
+  // results now.  This happens in -disable-free mode.
+  llvm::TimerGroup::printAll(llvm::errs());
+  llvm::TimerGroup::clearAll();
+
+  if (llvm::timeTraceProfilerEnabled()) {
+    SmallString<128> Path(Clang->getFrontendOpts().OutputFile);
+    llvm::sys::path::replace_extension(Path, "json");
+    if (auto profilerOutput =
+            Clang->createOutputFile(Path.str(),
+                                    /*Binary=*/false,
+                                    /*RemoveFileOnSignal=*/false, "",
+                                    /*Extension=*/"json",
+                                    /*useTemporary=*/false)) {
+
+      llvm::timeTraceProfilerWrite(*profilerOutput);
+      // FIXME(ibiryukov): make profilerOutput flush in destructor instead.
+      profilerOutput->flush();
+      llvm::timeTraceProfilerCleanup();
+    }
+  }
+
   ```
