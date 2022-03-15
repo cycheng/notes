@@ -1,4 +1,10 @@
 
+* How to print vector data
+```c
+half4 r = (half4)(0.0f);
+printf("%v4f\n", r);
+```
+
 * Basic Concepts: OpenCL Convenience Methods for Vector Elements and Type Conversions
   https://streamhpc.com/blog/2011-10-18/basic-concepts-convenience-methods/ 
 ```c
