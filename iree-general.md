@@ -3,6 +3,7 @@ Contents:
 * Linalg ElementWise fusion (affine map)
 * mmt4d
 * Build IREE
+* Interesting PRs/Issues
 
 ### Linalg ElementWise fusion (affine map)
 Ref: [2020-08-20: IREE CodeGen: MLIR Open Design Meeting Presentation](https://docs.google.com/presentation/d/1NetHjKAOYg49KixY5tELqFp6Zr2v8_ujGzWZ_3xvqC8/edit#slide=id.g91bae7fd94_1_43) 
@@ -218,3 +219,8 @@ vulkaninfo
     * Release + iree_compiler Debug: 0m2.707s
     * Release + iree_compiler Debug.split-dwarf: 0m1.400s
 * Ref: https://www.productive-cpp.com/improving-cpp-builds-with-split-dwarf/
+
+### Interesting PRs/Issues
+* Add fusion of transpose with matmul/batchmatmul named ops
+  https://github.com/google/iree/issues/8827
+
