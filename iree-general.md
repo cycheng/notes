@@ -223,4 +223,6 @@ vulkaninfo
 ### Interesting PRs/Issues
 * Add fusion of transpose with matmul/batchmatmul named ops
   https://github.com/google/iree/issues/8827
+* Is there any solution to generate SPIR-V code with Kernel capability?
+  https://github.com/google/iree/discussions/8831
 
