@@ -44,4 +44,6 @@
   * https://www.youtube.com/watch?v=0bxyZDGs-aA
 * TVM Conf 2020 - Day 2 - MLIR and MLIR in the TensorFlow Ecosystem
   * https://www.youtube.com/watch?v=FE-Gw6YTd8s
-  
+* Systolic Arrays
+  https://www.sciencedirect.com/topics/computer-science/systolic-arrays
+  <img width="453" alt="image" src="https://user-images.githubusercontent.com/5351229/166235438-d2a73aa3-260c-48ce-98e2-e3e52dfcce31.png">
