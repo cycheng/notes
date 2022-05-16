@@ -48,3 +48,7 @@
   * https://www.sciencedirect.com/topics/computer-science/systolic-arrays
   * C = AB, mkn = 4x4x4 matrix multiplication implementation:
   <img width="453" alt="image" src="https://user-images.githubusercontent.com/5351229/166235438-d2a73aa3-260c-48ce-98e2-e3e52dfcce31.png">
+* Linux performance observability tools
+  https://www.brendangregg.com/Perf/linux_observability_tools.png
+
+  
