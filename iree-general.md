@@ -221,8 +221,16 @@ vulkaninfo
 * Ref: https://www.productive-cpp.com/improving-cpp-builds-with-split-dwarf/
 
 ### Interesting PRs/Issues
+* 2022/04/22: Allow dispatch region formation to fuse producer and consumer when producer has multiple uses.
+  - https://github.com/google/iree/pull/8970
+  - Investigate a fusion opportunity on Layer Normalization
+    * https://github.com/google/iree/issues/9139
+    * vertical fusion / horizontal fusion
+* IREE with NPU targets?
+  - 2022/05/17: 
+    * https://github.com/google/iree/issues/9142#issue-1237929780
 * Add fusion of transpose with matmul/batchmatmul named ops
-  https://github.com/google/iree/issues/8827
+  * https://github.com/google/iree/issues/8827
 * Is there any solution to generate SPIR-V code with Kernel capability?
-  https://github.com/google/iree/discussions/8831
+  * https://github.com/google/iree/discussions/8831
 
