@@ -10,6 +10,8 @@
   - https://arxiv.org/abs/2110.15352
   - IREE: https://discord.com/channels/689900678990135345/760577505840463893/933243735356084245
     * From Ben Vanik
+* (ongoing) https://www.assemblyai.com/blog/pytorch-vs-tensorflow-in-2022/
+
 ```
 yeah, that would be awesome - we've been calling that "vertical tiling" or "vertical slicing"
 to an extent it's kind of what our linalg fusion does by not looking at layers and instead looking at the loop structure - only (today) it has some specific requirements about the loops it can put together
