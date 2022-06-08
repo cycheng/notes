@@ -221,6 +221,9 @@ vulkaninfo
 * Ref: https://www.productive-cpp.com/improving-cpp-builds-with-split-dwarf/
 
 ### Interesting PRs/Issues
+fusions: 
+* [Fusion opportunities for matmul + reshape + elementwise ops in MiniLM bert model](https://github.com/google/iree/issues/9278)
+* [2022/06 More opportunities about fusion with transpose in MiniLM Bert model](https://github.com/google/iree/issues/9259)
 * [2022/05 Fuse with transpose](https://github.com/google/iree/pull/9103)
 * [Only convert 1x1 conv to matmul if the width or height is not dynamic](https://github.com/google/iree/pull/9239)
 * [2022/04/22: Allow dispatch region formation to fuse producer and consumer when producer has multiple uses.](https://github.com/google/iree/pull/8970)
@@ -230,5 +233,11 @@ vulkaninfo
   - 2022/05/17: 
     * https://github.com/google/iree/issues/9142#issue-1237929780
 * [Add fusion of transpose with matmul/batchmatmul named ops](https://github.com/google/iree/issues/8827)
+
+new ops:
+* [2022/06 Parallel Reductions for Improving linalg_ext::TopkOp Performance](https://github.com/google/iree/issues/9383)
+* [2022/06 Topk Parallel Reduction Initial Implementation](https://github.com/google/iree/pull/9364)
+
+misc:
 * [Is there any solution to generate SPIR-V code with Kernel capability?](https://github.com/google/iree/discussions/8831)
 
