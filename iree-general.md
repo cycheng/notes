@@ -234,10 +234,13 @@ fusions:
     * https://github.com/google/iree/issues/9142#issue-1237929780
 * [Add fusion of transpose with matmul/batchmatmul named ops](https://github.com/google/iree/issues/8827)
 
+opt:
+* [2022/06 Rework on the logic of first level tiling sizes.](https://github.com/google/iree/pull/9314#issuecomment-1147648847)
+
 new ops:
 * [2022/06 Parallel Reductions for Improving linalg_ext::TopkOp Performance](https://github.com/google/iree/issues/9383)
 * [2022/06 Topk Parallel Reduction Initial Implementation](https://github.com/google/iree/pull/9364)
 
 misc:
 * [Is there any solution to generate SPIR-V code with Kernel capability?](https://github.com/google/iree/discussions/8831)
-
+* [Fixing race on semaphore timepoint cancellation.](https://github.com/google/iree/pull/9400)
