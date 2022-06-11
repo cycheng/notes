@@ -28,6 +28,18 @@ Contents:
     * A direct translation from llvm ir to MachineInstr
     * "Fast": Compromise what it can support as input from llvm ir
     * => It can fail, then fall back to path I
+* Problems with SDISel
+  * Basic block scope: E.g. we want to optimize the selection of addressing mode,
+    but we may not see all the uses of the addressing mode what we want to expose
+    on all the definition
+    * llvm came up some passes, e.g. [CodeGenPrepare]([url](https://llvm.org/doxygen/CodeGenPrepare_8cpp_source.html)) 
+      pass to help this problem. The pass pushes instructions within basic blocks of
+      duplicating instructions into the same basic block so that we expose this
+      optimization opportunity to the SD ISel
+    * Constant hoist: Put constants together which can be reused in different BB
+  * SDNode IR: take time and memory for the conversion
+  * Monolithic: Hard to debug
+ 
 
 ### Automatic verification of LLVM optimizations
 * Online tool:
