@@ -39,7 +39,43 @@ Contents:
     * Constant hoist: Put constants together which can be reused in different BB
   * SDNode IR: take time and memory for the conversion
   * Monolithic: Hard to debug
- 
+* Goals of GlobalISel:
+  * Global: Function scope
+  * Fast: compile time
+  * Shared code for fast and good paths
+  * IR that represents ISA concepts better
+  * More flexible/Easier to maintain/ ..
+
+#### Steps:
+* LLVM IR -> IRTranslator -> GMI -> Legalizer
+* IRTranslator
+  * llvm ir to generic(G) MachineInstr
+    * One IR to 0..* G MIR
+      ```llvm
+      define double @foo(                         foo:
+        double %val,                                val(64) = ..
+        double* %addr) {                            addr(32) = .. 
+        %intval = bitcast double %val to i64        (nop)
+        %loaded = load double, double* %addr        loaded(64) = gLD (double) addr
+        %mask = bitcast double %loaded to i64       (nop)
+        %and = and i64 %intval, %mask               and(64) = gAND (i64) val, loaded
+        %res = bitcast i64 %and to double
+        ret double %res                             ... = and
+      }
+      ```
+
+    * ABI Lowering, e.g. arm
+      ```llvm
+                                                  foo:
+                                                    val(FPR,64) = VMOVDRR R0,R1
+                                                    addr(32) = COPY R2
+                                                    loaded(64) = gLD (double) addr
+                                                    and(64) = gAND (i64) val, loaded
+                                                    R0,R1 = VMOVRRD and
+                                                    tBX_RET R0<imp-use>,R1<imp-use>
+      ```
+
+
 
 ### Automatic verification of LLVM optimizations
 * Online tool:
@@ -65,7 +101,6 @@ Contents:
 
 * Reference:
   - http://research.tedneward.com/reading/compilers.correctness.html
-
 
 ### Code: New pass manager add pass method
 
