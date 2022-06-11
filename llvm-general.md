@@ -1,11 +1,33 @@
 Contents:
 =========
+* LLVM Dev
+  * 2015 A Proposal for Global Instruction Selection
 * [Automatic verification of LLVM optimizations](#automatic-verification-of-llvm-optimizations)
 * [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
 * [Generate code for arm/amdgcn on x86](#generate-code-for-armamdgcn-on-x86)
 * [clang -ftime-trace](#clang--ftime-trace)
 * [TIPs](#tips)
-  * [clone-function](#clone-function) 
+  * [clone-function](#clone-function)
+
+## LLVM Dev
+
+### 2015 A Proposal for Global Instruction Selection
+* https://www.youtube.com/watch?v=F6GGbYtae3g
+* https://llvm.org/devmtg/2015-10/slides/Colombet-GlobalInstructionSelection.pdf
+* SelectionDAG (SD) ISel, two paths:
+  * LLVM IR -> SDBuilder -> SDNode -> DAGCombiner (1) -> Legalize* (2) -> DAGCombiner 
+            -> Select (4) -> Schedule (5) -> MachineInstr
+    * Build new representation: SDNode
+    * (1): Do canonicalization and peephole optimization
+    * (2): Translate into what is supported for the target
+    * (4): Select these nodes into target specific nodes
+    * (5): Linearize those graphs to be able to produce the sequential representation 
+           which is using MachineInsr, so we have to schedule those graphs
+    * We have to do it for every BasicBlock, that's why we have FastISel
+  * LLVM IR -> FastISel -> MachineInstr
+    * A direct translation from llvm ir to MachineInstr
+    * "Fast": Compromise what it can support as input from llvm ir
+    * => It can fail, then fall back to path I
 
 ### Automatic verification of LLVM optimizations
 * Online tool:
