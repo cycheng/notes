@@ -47,7 +47,7 @@ Contents:
   * More flexible/Easier to maintain/ ..
 
 #### Steps:
-* LLVM IR -> IRTranslator -> GMI -> Legalizer
+* LLVM IR -> IRTranslator -> GMI -> Legalizer -> RegBank Select
 * IRTranslator
   * llvm ir to generic(G) MachineInstr
     * One IR to 0..* G MIR
@@ -63,7 +63,6 @@ Contents:
         ret double %res                             ... = and
       }
       ```
-
     * ABI Lowering, e.g. arm
       ```llvm
                                                   foo:
@@ -74,7 +73,30 @@ Contents:
                                                     R0,R1 = VMOVRRD and
                                                     tBX_RET R0<imp-use>,R1<imp-use>
       ```
+* Legalizer
+  ```llvm
+    foo:
+      val(FPR,64) = VMOVDRR R0,R1
+      addr(32) = COPY R2
+      loaded(64) = gLD (double) addr
+      ; lower 64 bit and to 32 bit and
+      and(64) = gAND (i64) val, loaded            lval(32),hval(32) = extract val
+                                                  low(32),high(32) = extract loaded
+                                                  land(32) = gAND (i32) lval, low
+                                                  hand(32) = gAND (i32) hval, high
+                                                  and(64) = build_sequence land, hand
+      R0,R1 = VMOVRRD and
+      tBX_RET R0<imp-use>,R1<imp-use>
+  ```
+  ```llvm
+      lval(32),hval(32) = extract val             lval(32),hval(32) = VMOVRRD val
+      low(32),high(32) = extract loaded           low(32),high(32) = VMOVRRD loaded
+      land(32) = gAND (i32) lval, low             land(32) = gAND (i32) lval, low
+      hand(32) = gAND (i32) hval, high            hand(32) = gAND (i32) hval, high
+      and(64) = build_sequence land, hand         and(64) = VMOVDRR land, hand
+  ```
 
+* RegBankSelect
 
 
 ### Automatic verification of LLVM optimizations
