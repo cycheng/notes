@@ -163,3 +163,21 @@ Contents:
 
 #### Summary/How do we get there?
 Skip!
+
+#### Q&A
+* What about control flow representation, especially can you handle predicates at that stage?
+  * If you are able to model predicate then you can do the same thing on G-MIR. Anything you
+    can do in the backend you would be able to do in this GlobalISel
+* You didn't cover scheduling?
+  * With the MachineInstr we don't need any scheduling anymore because we have already produced
+    the MIR from a sequentialized version of the representation
+  * For MIR scheduling this just leave to existing scheduler
+* (Cont.) I mean moving instructions between basicblocks
+  * Won't do in prototype
+  * At this point, this will be done later, e.g. machine CSE / LICM / ..
+  * We may think to add a generic optimizer for it
+* How much of the existing code can be reused?
+  * ...
+* Regarding RegBankSelector, Why not leave to register allocator?
+  * ...
+* ...
