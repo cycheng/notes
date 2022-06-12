@@ -41,7 +41,7 @@ Contents:
   * More flexible/Easier to maintain/ ..
 
 #### Steps:
-* LLVM IR -> IRTranslator -> GMI -> Legalizer -> RegBank Select
+* LLVM IR -> IRTranslator -> GMI -> Legalizer -> RegBank Select -> Select
 * IRTranslator
   * llvm ir to generic(G) MachineInstr
     * One IR to 0..* G MIR
@@ -140,3 +140,23 @@ Contents:
       R0,R1 = VMOVRRD and                         R0,R1 = COPIES and1, and2
   ```
 
+* Select
+  ```llvm
+    foo:
+      val1(GPR,32),val2(GPR,32) = COPIES R0,R1
+      addr(GPR,32) = COPY R2
+      loaded1(GPR,32) = gLD (i32) addr                    loaded1(GPR,32) = t2LDRi12 (i32) addr
+      loaded2(GPR,32) = gLD (i32) addr, #4                loaded2(GPR,32) = t2LDRi12 (i32) addr, #4
+      lval(GPR,32),hval(GPR,32) = COPIES val1, val2
+      low(GPR,32),high(GPR,32) = COPIES loaded1,loaded2
+      land(GPR,32) = gAND (i32) lval, low                 land(GPR,32) = t2ANDrr (i32) lval, low
+      hand(GPR,32) = gAND (i32) hval, high                hand(GPR,32) = t2ANDrr (i32) hval, high
+      and1(GPR,32), and2(GPR,32) = COPIES land, hand
+      R0,R1 = COPIES and1, and2
+      tBX_RET R0<imp-use>,R1<imp-use>
+  ```
+    * (G)MIR -> MIR: In-place morphing
+    * State expressed in the IR
+    * State machine
+    * Iterate until everything is selected
+    * *Combines across basic blocks*
