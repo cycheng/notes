@@ -91,3 +91,38 @@ Contents:
   ```
 
 * RegBankSelect
+  * Fast way:
+  ```llvm
+    foo:
+      val(FPR,64) = VMOVDRR R0,R1                 val(FPR,64) = VMOVDRR R0,R1
+      addr(32) = COPY R2                          addr(GPR,32) = COPY R2
+      loaded(64) = gLD (double) addr              loaded(FPR,64) = gLD (double) addr
+      lval(32),hval(32) = VMOVRRD val             lval(GPR,32),hval(GPR,32) = VMOVRRD val
+      low(32),high(32) = VMOVRRD loaded           low(GPR,32),high(GPR,32) = VMOVRRD loaded
+      land(32) = gAND (i32) lval, low             land(GPR,32) = gAND (i32) lval, low
+      hand(32) = gAND (i32) hval, high            hand(GPR,32) = gAND (i32) hval, high
+      and(64) = VMOVDRR land, hand                and(FPR,64) = VMOVDRR land, hand
+      R0,R1 = VMOVRRD and                         R0,R1 = VMOVRRD and
+      tBX_RET R0<imp-use>,R1<imp-use>             tBX_RET R0<imp-use>,R1<imp-use>
+  ```
+
+  * Avoid across domain penalties:
+    * Asks the target what register banks are supported for a given opcode
+  ```llvm
+      val(FPR,64) = VMOVDRR R0,R1                 1. [{(FPR,0xFF…FF),1},
+                                                  2.  {(GPR,0xFFFF…0000)(GPR,0x0000…FFFF),0}]
+  ```
+      * (1) The target could say, it can create this definition in FPR register, 0xFF.. is
+        the mask means the value is in the register bank, the value can be produced in cost 1
+      * (2) The target can also produce the value in two GPR, one contains upper 32-bits, the
+        other contains lower 32-bits, the cost is 0 
+  ```llvm
+      lval(32),hval(32) = VMOVRRD val             1. [{(FPR,0xFF…FF),1},
+                                                  2.  {(GPR,0xFFFF…0000)(GPR,0x0000…FFFF),0}]
+  ```
+      * We can have a pass to analysis and avoid copy from FPR to GPR (For arm the cross copy
+        can cost 20 cycles
+  ```llvm
+      val(FPR,64) = VMOVDRR R0,R1                 val1(GPR,32),val2(GPR,32) = COPIES R0,R1
+      lval(32),hval(32) = VMOVRRD val             lval(32),hval(32) = COPIES val1, val2 
+  ```
