@@ -112,17 +112,31 @@ Contents:
       val(FPR,64) = VMOVDRR R0,R1                 1. [{(FPR,0xFF…FF),1},
                                                   2.  {(GPR,0xFFFF…0000)(GPR,0x0000…FFFF),0}]
   ```
-      * (1) The target could say, it can create this definition in FPR register, 0xFF.. is
-        the mask means the value is in the register bank, the value can be produced in cost 1
-      * (2) The target can also produce the value in two GPR, one contains upper 32-bits, the
-        other contains lower 32-bits, the cost is 0 
+    * (1) The target could say, it can create this definition in FPR register, 0xFF.. is
+      the mask means the value is in the register bank, the value can be produced in cost 1
+    * (2) The target can also produce the value in two GPR, one contains upper 32-bits, the
+      other contains lower 32-bits, the cost is 0 
+  
   ```llvm
       lval(32),hval(32) = VMOVRRD val             1. [{(FPR,0xFF…FF),1},
                                                   2.  {(GPR,0xFFFF…0000)(GPR,0x0000…FFFF),0}]
   ```
-      * We can have a pass to analysis and avoid copy from FPR to GPR (For arm the cross copy
-        can cost 20 cycles
+    * We can have a pass to analysis and avoid copy from FPR to GPR (For arm the cross copy
+      can cost 20 cycles
+
   ```llvm
       val(FPR,64) = VMOVDRR R0,R1                 val1(GPR,32),val2(GPR,32) = COPIES R0,R1
       lval(32),hval(32) = VMOVRRD val             lval(32),hval(32) = COPIES val1, val2 
   ```
+    * This looks like legalization? => Reuse toolkits from Legalizer!
+
+  ```llvm
+      loaded(64) = gLD (double) addr              loaded1(GPR,32) = gLD (i32) addr
+                                                  loaded2(GPR,32) = gLD (i32) addr, #4
+
+      low(32),high(32) = VMOVRRD loaded           low(32),high(32) = COPIES loaded1,loaded2
+      
+      and(64) = VMOVDRR land, hand                and1(GPR,32), and2(GPR,32) = COPIES land, hand 
+      R0,R1 = VMOVRRD and                         R0,R1 = COPIES and1, and2
+  ```
+
