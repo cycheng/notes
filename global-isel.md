@@ -9,6 +9,8 @@ Contents:
     * [Combiners](#combiners)
     * [MIPatternMatch](#mipatternmatch)
     * [KnownBits Analysis](#knownbits-analysis)
+    * [SimplifyDemandedBits](#simplifydemandedbits)
+    * 
   * [2015 A Proposal for Global Instruction Selection](#2015-a-proposal-for-global-instruction-selection)
     * [Steps](#steps)
     * [Q&A](#qa)
@@ -258,11 +260,17 @@ Contents:
       ```
 * Currently provides known-ones, known-zeros, and unknowns
 
+#### SimplifyDemandedBits
+* Essentially a special case of Combine, it basically tries to eliminate calculations
+  that contribute to the bits that are never read by mathematics
+* For example, here we don't need shift op because we don't demand any bits beyond 16-bits:
+  ```c++
+  (a << 16) | (b & 0xFFFF) → (b & 0xFFFF)
+  ```
+  * Will upstream it soon
 
-* KnownBits
-* SimplifyDemandedBits
-
-
+#### Testing (つづき)
+https://youtu.be/8427bl_7k1g?t=969
 
 ### 2015 A Proposal for Global Instruction Selection
 * https://www.youtube.com/watch?v=F6GGbYtae3g
