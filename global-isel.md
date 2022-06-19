@@ -210,13 +210,46 @@ Contents:
   * changingInstr() and changedInstr() are handled manually and mandatory for
     MRI.setRegClass(), MO.setReg(), etc
 
+#### KnownBits Analysis
+* Many combines are only valid for certain cases
+  * (a + 1) → (a | 1) is only valid if (a & 1) == 0
+  * E.g.
+    ```llvm
+    %1:(s32) = G_CONSTANT i32 0xFF0         %1: 0x00000FF0
+    %2:(s32) = G_AND %0, %1                 %0: 0x????????
+                                            %2: 0x00000??0
+    %3:(s32) = G_CONSTANT i32 0x0FF         %3: 0x000000FF
+    %4:(s32) = G_AND %2, %3                 %4: 0x000000?0
+    ```
+* We added an analysis pass to provide this information
+  * In SelectionDAGISel, computeKnownBits() is just a function without caching => redudant computation
+  * Be an analysis pass allows:
+    * Caching within/between passes
+    * Early exit when enough is known
+    * Allows us to have alternative implementations, e.g. overide for target instruction
+      ```c++
+      void MyTargetLowering::computeKnownBitsForTargetInstr(
+              GISelKnownBits &Analysis, Register R, KnownBits &Known,
+              const APInt &DemandedElts, const MachineRegisterInfo &MRI,
+              unsigned Depth = 0) const override {
+        // ...
+        switch (Opcode) {
+        // ...
+        case TargetOpcode::ANDWrr: {
+          Analysis.computeKnownBitsImpl(MI.getOperand(2).getReg(), Known, DemandedElts, Depth + 1);
+          Analysis.computeKnownBitsImpl(MI.getOperand(1).getReg(), Known2, DemandedElts, Depth + 1);
+          Known.One &= Known2.One;
+          Known.Zero |= Known2.Zero;
+          break;
+        }
+        // ...
+        }
+        // ...
+      }
+      ```
+* Currently provides known-ones, known-zeros, and unknowns
 
-* GlobalISel Combiner has 3 main pieces:
-* A Basic Combiner
-* 
 
-
-* 
 * KnownBits
 * SimplifyDemandedBits
 
