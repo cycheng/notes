@@ -104,13 +104,29 @@ Contents:
   * An optimization that transforms a pattern into something more desirable, e.g.
     ```llvm
     define i32 @foo(i8 %in) {                   
-      %ext1 = zext i8 %in to i16              
+      %ext1 = zext i8 %in to i16
       %ext2 = zext i16 %ext1 to i32      =>       %ext2 = zext i8 %in to i32
       ret i32 %ext2
     }
     ```
     The first instruction is actually redundant and can be combined with the second
     instruction
+* GlobalISel Combiner consists of 3 main pieces
+  * Combiner iterates over the MachineFunction
+  * CombinerInfo specifies which operations to be combined and how
+  * CombinerHelper is a library of generic combines
+  ```c++
+  MyTargetCombinerPass -(uses)-> Combiner
+                                    |
+                                    v (uses)
+          MyTargetCombinerInfo (derived from CombinerInfo)
+            implements combine() method
+                                    |
+                                    v (uses)
+          MyTargetCombinerHelper
+            implements combines (patterns), e.g. 'zext(zext x) -> zext x'
+  ```
+
 * Example:
   * A Basic Combiner
     ```c++
@@ -136,13 +152,13 @@ Contents:
                                             MachineInstr &MI,
                                             MachineIRBuilder &B) const {
         // ..
-        // Combine zext(zext x) -> zext x
-        if (MI.getOpcode() == TargetOpcode::G_ZEXT) {
+        // Combine zext(zext x) -> zext x                         // example:
+        if (MI.getOpcode() == TargetOpcode::G_ZEXT) {             // %ext2 = zext i16 %ext1 to i32
             Register SrcReg = MI.getOperand(1).getReg();
-            MachineInstr *SrcMI = MRI.getVRegDef(SrcReg);
+            MachineInstr *SrcMI = MRI.getVRegDef(SrcReg);         // %ext1 = zext i8 %in to i16
             // Check if SrcMI is a G_ZEXT.
             if (SrcMI->getOpcode() == TargetOpcode::G_ZEXT) {
-                SrcReg = SrcMI->getOperand(1).getReg();
+                SrcReg = SrcMI->getOperand(1).getReg();           // SrcReg = %in
                 B.buildZExt(Reg, SrcReg);
                 MI.eraseFromParent();
                 return true;
@@ -155,6 +171,45 @@ Contents:
     * But, even though the logic is pretty simple here, it's a bit hard to follow
       all of these checks. We found this approach difficult because it tends to require
       a lot of code for some combines, this is why we add MIPatternMatch
+
+#### MIPatternMatch
+* Provide simple and easy mechanism to match generic (MIR) patterns
+  * It's able to match operations/registers/constants/.. etc.
+  * It's also able to match (?) of operations without duplicating the pattern or
+    swapping (?)
+* Similar to what we have for LLVM IR
+* Combines can be implemented easily using matchers
+* Example: zext(zext x) -> zext x
+  ```c++
+  // Combine zext(zext x) -> zext x
+  Register SrcReg;
+  if (mi_match(Reg, MRI, m_GZext(m_GZext(m_Reg(SrcReg))))) {
+    B.buildZExt(Reg, SrcReg);       // %ext2' = zext i8 %in to i32
+    MI.eraseFromParent();           // erase: %ext2 = zext i16 %ext1 to i32
+    return true;
+  }
+  ```
+* In above case, we don't have to build a new MIR and erase the original one's,
+  instead we can just replace the source operand with the match register
+  ```c++
+  // Combine zext(zext x) -> zext x
+  Register SrcReg;
+  if (mi_match(Reg, MRI, m_GZext(m_GZext(m_Reg(SrcReg))))) {
+    Observer.changingInstr(MI);
+    MI.getOperand(1).setReg(SrcReg);  // %ext2 = zext i8 %in to i32
+    Observer.changedInstr(MI);
+    return true;
+  }
+  ```
+  * When changing register, we need to be careful register classes and banks
+  * Needs to informing observer
+* Observer
+  * Observer needs to be informed when something changed, because other components,
+    such as CSE, depends on observer to keep track of changes
+  * createdInstr() and erasedInstr() are handled automatically
+  * changingInstr() and changedInstr() are handled manually and mandatory for
+    MRI.setRegClass(), MO.setReg(), etc
+
 
 * GlobalISel Combiner has 3 main pieces:
 * A Basic Combiner
