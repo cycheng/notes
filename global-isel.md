@@ -3,6 +3,13 @@ Contents:
 * [LLVM Dev](#llvm-dev)
   * [2015 A Proposal for Global Instruction Selection](#2015-a-proposal-for-global-instruction-selection)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
+    * [Anatomy of GlobalISel](#anatomy-of-globalisel)
+    * [Combiner](#combiner)
+    * [Features needed to improve codegen quality and compile time](#features-needed-to-improve-codegen-quality-and-compile-time)
+    * [Common Subexpression Elimination (CSE)](#common-subexpression-elimination-cse)
+    * [Combiners](#combiners)
+    * [MIPatternMatch](#mipatternmatch)
+    * [KnownBits Analysis](#knownbits-analysis)
 
 ## LLVM Dev
 
