@@ -2,7 +2,7 @@ Contents:
 =========
 * [LLVM Dev](#llvm-dev)
   * [2015 A Proposal for Global Instruction Selection](#2015-a-proposal-for-global-instruction-selection)
-  * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globaliSel)
+  * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
 
 ## LLVM Dev
 
@@ -61,6 +61,110 @@ Contents:
     GlobalISel is: 
     * On average 8% faster than pipeline with SelectionDAGISel
     * GlobalISel is about 45% faster than SelectionDAGISel
+
+#### Features needed to improve codegen quality and compile time
+* Common Subexpression Elimination (CSE)
+* Combiners
+* KnownBits
+* SimplifyDemandedBits
+
+#### Common Subexpression Elimination (CSE)
+* Why not use MachineCSE?
+  * It's expensive to run after each GlobalISel pass
+  * There are some target specific combines generating suboptimal code
+* Continuous CSE approach
+  * Instructions are CSE'd at creation time using CSEMIRBuilder
+  * Information is provided by an analysis pass
+  * It's currently BasicBlock-local, but we might make it global in the future
+  * It's now only supports a subset of generic operations, but we will extend
+    it soon
+  * We also plan to add support to CSE target instructions
+* Things to be aware of
+  * It's easy to use CSE by CSEMIRBuilder, but CSE needs to be informed when something
+    (MachineInstrs) is changed, such as
+    * Erasing a MIR, Switching OPCode, Replacing registers
+  * For creation and erasure, it installs a machine function delegate to handle them
+    automatically, so there is no need to inform (CSEMIRBuilder) these kind of changes
+  * For other kind of changes, the "change observer" needs to be called so that CSE
+    infrastructure knows about the changes
+  * "Observer" means to maintain information as MIR changed
+* Compile Time Cost
+  * CSEMIRBuilder allows us to generate better code, but what about compile time cost?
+  * We were expecting this to come at a big compile-time cost, but it didn't cause a
+    significant regression
+  * For some cases it actually improved compile time, because CSE reduce number of
+    instructions so later passes had less work to do
+  * Overall, CSE helped to improve code quality with a good price
+
+#### Combiners
+* A combiner is a pass which applies a set of combine rules to MIR
+* It's probably the most important component for producing good code, and
+* It can be quite expensive in terms of compile-time
+* What is a combine?
+  * An optimization that transforms a pattern into something more desirable, e.g.
+    ```llvm
+    define i32 @foo(i8 %in) {                   
+      %ext1 = zext i8 %in to i16              
+      %ext2 = zext i16 %ext1 to i32      =>       %ext2 = zext i8 %in to i32
+      ret i32 %ext2
+    }
+    ```
+    The first instruction is actually redundant and can be combined with the second
+    instruction
+* Example:
+  * A Basic Combiner
+    ```c++
+    bool MyTargetCombinerInfo::combine(GISelChangeObserver &Observer,
+                                       MachineInstr &MI,
+                                       MachineIRBuilder &B) const {
+        MyTargetCombinerHelper TCH(Observer, B, KB);
+        // ...
+        // Try all combines.
+        if (OptimizeAggresively)
+            return TCH.tryCombine(MI);
+        // Combine COPY only.
+        if (MI.getOpcode() == TargetOpcode::COPY)
+            return TCH.tryCombineCopy(MI);
+        return false;
+    }
+    ```
+    * Flexible: It's easily to include or exclude combines, we can change our strategy
+      based on our target/sub-target/opt-level
+  * A Simple Combine: zext(zext x) -> zext x
+    ```c++
+    bool MyTargetCombinerHelper::combineExt(GISelChangeObserver &Observer,
+                                            MachineInstr &MI,
+                                            MachineIRBuilder &B) const {
+        // ..
+        // Combine zext(zext x) -> zext x
+        if (MI.getOpcode() == TargetOpcode::G_ZEXT) {
+            Register SrcReg = MI.getOperand(1).getReg();
+            MachineInstr *SrcMI = MRI.getVRegDef(SrcReg);
+            // Check if SrcMI is a G_ZEXT.
+            if (SrcMI->getOpcode() == TargetOpcode::G_ZEXT) {
+                SrcReg = SrcMI->getOperand(1).getReg();
+                B.buildZExt(Reg, SrcReg);
+                MI.eraseFromParent();
+                return true;
+            }
+        }
+        // ...
+    }
+    ```
+    * It's easy to add a combine rule
+    * But, even though the logic is pretty simple here, it's a bit hard to follow
+      all of these checks. We found this approach difficult because it tends to require
+      a lot of code for some combines, this is why we add MIPatternMatch
+
+* GlobalISel Combiner has 3 main pieces:
+* A Basic Combiner
+* 
+
+
+* 
+* KnownBits
+* SimplifyDemandedBits
+
 
 
 ### 2015 A Proposal for Global Instruction Selection
