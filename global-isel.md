@@ -10,7 +10,7 @@ Contents:
     * [MIPatternMatch](#mipatternmatch)
     * [KnownBits Analysis](#knownbits-analysis)
     * [SimplifyDemandedBits](#simplifydemandedbits)
-    * 
+    * [Testing (つづき)](#testing-つづき)
   * [2015 A Proposal for Global Instruction Selection](#2015-a-proposal-for-global-instruction-selection)
     * [Steps](#steps)
     * [Q&A](#qa)
@@ -270,7 +270,7 @@ Contents:
   * Will upstream it soon
 
 #### Testing (つづき)
-https://youtu.be/8427bl_7k1g?t=969
+* ONGOING: https://youtu.be/8427bl_7k1g?t=969
 
 ### 2015 A Proposal for Global Instruction Selection
 * https://www.youtube.com/watch?v=F6GGbYtae3g
