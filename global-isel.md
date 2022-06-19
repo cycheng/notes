@@ -10,6 +10,8 @@ Contents:
     * [MIPatternMatch](#mipatternmatch)
     * [KnownBits Analysis](#knownbits-analysis)
   * [2015 A Proposal for Global Instruction Selection](#2015-a-proposal-for-global-instruction-selection)
+    * [Steps](#steps)
+    * [Q&A](#qa)
 
 ## LLVM Dev
 
