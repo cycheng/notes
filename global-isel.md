@@ -2,8 +2,57 @@ Contents:
 =========
 * [LLVM Dev](#llvm-dev)
   * [2015 A Proposal for Global Instruction Selection](#2015-a-proposal-for-global-instruction-selection)
+  * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globaliSel)
 
 ## LLVM Dev
+
+### 2019 Generating Optimized Code with GlobalISel
+* https://www.youtube.com/watch?v=8427bl_7k1g
+* https://llvm.org/devmtg/2019-10/slides/SandersKeles-GeneratingOptimizedCodewithGlobalISel.pdf
+* From Apple GPU Compiler team.
+* Apple GPU Compiler is now using GlobalISel
+  * 2017, Apple GPU compiler got GlobalISel fully working for their target
+    Fast compile time but codegen quality was significantly lower
+  * 2019, GlobalISel going beyond "it works"
+    * Enabled in ios13, running on millions of Apple devices
+* What is GlobalISel (V.S. SelectionDAGISel)
+  * A new instruction selection framework
+  * Supports more global optimization
+    * Able to match cross basic blocks
+  * More flexible
+    * GlobalISel can range from the speed of FastISel to the quality of SelectionDAGISel
+  * Easier to maintain, understand, and test
+  * It keeps all the state in the machine IR
+    * We can dump the machine function at any point and it accurately reflects the program,
+      there is no need to look at temporary information for each pass
+
+#### Anatomy of GlobalISel
+<img width="837" alt="image" src="https://user-images.githubusercontent.com/5351229/174483519-11a28e86-53c9-4395-a3a4-4d2cb5c67f53.png">
+
+  * GlobalISel goes straight to the MIR representation, it doesn't pass through other
+    representation
+  * IR Translator
+    * Takes llvm ir and converts it to generic MIR
+  * Legalizer replaces unsupported operations with supported one's
+  * [Register Bank Selector:](https://llvm.org/docs/GlobalISel/RegBankSelect.html)
+    * This pass constrains the Generic Virtual Registers operands of generic instructions
+      to some Register Bank
+  * Instruction Selector: select target instructions
+
+#### Combiner
+<img width="858" alt="image" src="https://user-images.githubusercontent.com/5351229/174484591-09d34fdd-17ed-4a68-9c34-d1be60a8ce0f.png">
+
+* Combiner passes optimize (G)MIR and MIR by transforming some patterns into something
+  more desirable
+* We can put combiner passes in different places, with notes:
+  * IRTranslator/Legalizer/RegisterBankSelector/InstructionSelector have some requirements
+    to combiner passes. The requirements get stricter later in the pipeline.
+    * For example, pre-legalizer is fairly relaxed, but post RegisterBankSelector has to be
+      careful to avoid disturbing assigned register banks
+* Why we need combiners?
+  * In 2017, on average, GlobalISel was generating 30% more instructions compared to
+    SelectionDAGISel
+
 
 ### 2015 A Proposal for Global Instruction Selection
 * https://www.youtube.com/watch?v=F6GGbYtae3g
