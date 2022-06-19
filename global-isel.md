@@ -52,6 +52,15 @@ Contents:
 * Why we need combiners?
   * In 2017, on average, GlobalISel was generating 30% more instructions compared to
     SelectionDAGISel
+  * Today (2019), on average, the difference in instruction count < 2%, and runtime
+    performance is similar compared to SelectionDAGISel
+  * There is some work to do in order to beyond this, but it looks promising
+* Compile Time Performance
+  * For GPU compiler it's one of the important metrics (compile shader in runtime)
+  * Today (2019), the (end to end? Probaly!? Speaker didn't say more details) pipeline with
+    GlobalISel is: 
+    * On average 8% faster than pipeline with SelectionDAGISel
+    * GlobalISel is about 45% faster than SelectionDAGISel
 
 
 ### 2015 A Proposal for Global Instruction Selection
