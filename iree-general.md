@@ -227,6 +227,7 @@ fusions:
 * [2022/05 Fuse with transpose](https://github.com/google/iree/pull/9103)
 * [Only convert 1x1 conv to matmul if the width or height is not dynamic](https://github.com/google/iree/pull/9239)
 * [2022/04/22: Allow dispatch region formation to fuse producer and consumer when producer has multiple uses.](https://github.com/google/iree/pull/8970)
+* [P2022/04 ermute elementwise operations to make fusions better](https://github.com/google/iree/issues/8951)
 * [Investigate a fusion opportunity on Layer Normalization](https://github.com/google/iree/issues/9139)
   - vertical fusion / horizontal fusion
 * IREE with NPU targets?
@@ -236,6 +237,7 @@ fusions:
 
 opt:
 * [2022/06 Rework on the logic of first level tiling sizes.](https://github.com/google/iree/pull/9314#issuecomment-1147648847)
+* [Improvements following move of tile and distribute out of Flow](https://github.com/google/iree/issues/8363#issuecomment-1147909128)
 
 new ops:
 * [2022/06 Parallel Reductions for Improving linalg_ext::TopkOp Performance](https://github.com/google/iree/issues/9383)
