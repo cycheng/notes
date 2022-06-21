@@ -241,6 +241,10 @@ new ops:
 * [2022/06 Parallel Reductions for Improving linalg_ext::TopkOp Performance](https://github.com/google/iree/issues/9383)
 * [2022/06 Topk Parallel Reduction Initial Implementation](https://github.com/google/iree/pull/9364)
 
+benchmark:
+* https://github.com/mmperf/mmperf#results-on-nvidia-a100-cublas-vs-shark
+* cuda profiler figure? https://discord.com/channels/689900678990135345/804403964463546378/978190739634798602
+
 misc:
 * [Is there any solution to generate SPIR-V code with Kernel capability?](https://github.com/google/iree/discussions/8831)
 * [Fixing race on semaphore timepoint cancellation.](https://github.com/google/iree/pull/9400)
