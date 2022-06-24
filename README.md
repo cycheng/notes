@@ -35,6 +35,11 @@ since it looks like what they did involved training to handle it, they're likely
   - https://arxiv.org/pdf/2102.05187.pdf
 
 ## Read
+* GEF - GDB Enhanced Features
+  * https://hugsy.github.io/gef/commands/context/#editing-context-layout
+  * https://hugsy.github.io/gef/commands/config/
+  * https://github.com/hugsy/gef
+
 * 字节跳动 Service Mesh 数据面编译优化实践
   - https://mp.weixin.qq.com/s/56RYaad3YnUSn3NgXiD_Ow?fbclid=IwAR0M-W_AXSIAMrJdD8qrBH_bUsl77vkT-gpoo-xSlm8NsAp4sm8Y8ifoXe0
 * What is Envoy
