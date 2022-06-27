@@ -11,20 +11,18 @@
   - https://arxiv.org/abs/2110.15352
   - IREE: https://discord.com/channels/689900678990135345/760577505840463893/933243735356084245
     * From Ben Vanik
+      ```
+      yeah, that would be awesome - we've been calling that "vertical tiling" or "vertical slicing"
+      to an extent it's kind of what our linalg fusion does by not looking at layers and instead looking at the loop structure - only (today) it has some specific requirements about the loops it can put together
+      there's a few scales of this approach, though, and the higher level ones (partitioning entire slices of the model across devices) are still TBD
+      the lower level ones (what our fusion does and some linalg transformations for slicing things up) are easier for us to do automatically, while the higher level ones may need frontend involvement
+      in the jax world it's https://jax.readthedocs.io/en/latest/jax-101/06-parallelism.html pmap & co, which I don't think we support yet
+      if we did support it we could more easily use multiple device queues/multiple devices by just using the pmap as the partitioning mechanism - cheat our way to distribution :P
+      since it looks like what they did involved training to handle it, they're likely more on the jax pmap side of things
+      (meaning that if we supported pmap - even running serially by just translating it to an scf.for loop - we could do what they did in the paper)
+      (we could do it without pmap and stuff today, mostly just anchoring on that as a nice user-level mechanism)
+      ```
 * (ongoing) https://www.assemblyai.com/blog/pytorch-vs-tensorflow-in-2022/
-
-```
-yeah, that would be awesome - we've been calling that "vertical tiling" or "vertical slicing"
-to an extent it's kind of what our linalg fusion does by not looking at layers and instead looking at the loop structure - only (today) it has some specific requirements about the loops it can put together
-there's a few scales of this approach, though, and the higher level ones (partitioning entire slices of the model across devices) are still TBD
-the lower level ones (what our fusion does and some linalg transformations for slicing things up) are easier for us to do automatically, while the higher level ones may need frontend involvement
-in the jax world it's https://jax.readthedocs.io/en/latest/jax-101/06-parallelism.html pmap & co, which I don't think we support yet
-if we did support it we could more easily use multiple device queues/multiple devices by just using the pmap as the partitioning mechanism - cheat our way to distribution :P
-since it looks like what they did involved training to handle it, they're likely more on the jax pmap side of things
-(meaning that if we supported pmap - even running serially by just translating it to an scf.for loop - we could do what they did in the paper)
-(we could do it without pmap and stuff today, mostly just anchoring on that as a nice user-level mechanism)
-```
-
 * https://en.wikipedia.org/wiki/Cache-oblivious_algorithm
 * Parallel matrix transpose algorithms on distributed memory concurrent computers
   - http://www.netlib.org/utk/people/JackDongarra/PAPERS/069_1995_parallel-matrix-transpose-algorithms-on-distributed-memory.pdf
@@ -78,5 +76,6 @@ since it looks like what they did involved training to handle it, they're likely
   <img width="453" alt="image" src="https://user-images.githubusercontent.com/5351229/166235438-d2a73aa3-260c-48ce-98e2-e3e52dfcce31.png">
 * Linux performance observability tools
   - https://www.brendangregg.com/Perf/linux_observability_tools.png
-
-  
+* [中論](http://e-dalailama.com/sutra/Foundamental_Middle_Path.pdf)
+* [中觀四百論](http://e-dalailama.com/sutra/400_2016.pdf)
+* [釋量論](http://e-dalailama.com/sutra/%E9%87%8B%E9%87%8F%E8%AB%96.pdf)
