@@ -2,6 +2,7 @@
 ## IREE+MLIR+LLVM
 
 ## TODO Reading List:
+* [2022 Feb TFRT: A Progress Update](https://blog.tensorflow.org/2022/02/tfrt-progress-update.html)
 * FPL: Fast Presburger Arithmetic through Transprecision
   - https://dl.acm.org/doi/pdf/10.1145/3485539
 * Automatic Horizontal Fusion for GPU Kernels
@@ -39,7 +40,7 @@ since it looks like what they did involved training to handle it, they're likely
   * https://hugsy.github.io/gef/commands/context/#editing-context-layout
   * https://hugsy.github.io/gef/commands/config/
   * https://github.com/hugsy/gef
-
+* [PyTorch vs TensorFlow in 2022](https://www.assemblyai.com/blog/pytorch-vs-tensorflow-in-2022/)
 * 字节跳动 Service Mesh 数据面编译优化实践
   - https://mp.weixin.qq.com/s/56RYaad3YnUSn3NgXiD_Ow?fbclid=IwAR0M-W_AXSIAMrJdD8qrBH_bUsl77vkT-gpoo-xSlm8NsAp4sm8Y8ifoXe0
 * What is Envoy
