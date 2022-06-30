@@ -3,6 +3,7 @@
 
 ## TODO Reading List:
 * [2022 Feb TFRT: A Progress Update](https://blog.tensorflow.org/2022/02/tfrt-progress-update.html)
+* [2021 Optimization based on LLVM global instruction selection](https://iopscience.iop.org/article/10.1088/1742-6596/1856/1/012004/pdf)
 * FPL: Fast Presburger Arithmetic through Transprecision
   - https://dl.acm.org/doi/pdf/10.1145/3485539
 * Automatic Horizontal Fusion for GPU Kernels
