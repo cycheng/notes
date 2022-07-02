@@ -8,7 +8,7 @@ Contents:
     * [Subtarget Setup](#subtarget-setup)
     * [Initialize GlobalISel](#initialize-globalisel-and-globalisel-passes)
     * [Update CMakeLists.txt](#update-cmakeliststxt)
-    * [IRTranslator and Implement CallLowering](#irtranslator-and-implement-callinglowering)
+    * [IRTranslator and Implement CallLowering](#irtranslator-and-implement-abi-lowering---calllowering)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
