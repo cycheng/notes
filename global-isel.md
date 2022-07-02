@@ -1,6 +1,7 @@
 Contents:
 =========
 * [LLVM Dev](#llvm-dev)
+  * [Tutorial: Head First into GlobalISel](#2017-tutorial-head-first-into-globalisel)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
@@ -16,6 +17,24 @@ Contents:
     * [Q&A](#qa)
 
 ## LLVM Dev
+
+### 2017 Tutorial: Head First into GlobalISel 
+* https://www.youtube.com/watch?v=Zh4R40ZyJ2k
+* https://llvm.org/devmtg/2017-10/slides/Bogner-Nandakumar-Sanders-Head%20First%20into%20GlobalISel.pdf
+* From Apple GPU Compiler team.
+* Head First into GlobalISel. Or: How to delete SelectionDAG in 100* easy commits
+#### Porting to GlobalISel
+We choose a simple backend BPF Backend to demostrate the porting, because BPF has only 1 register class, 1 legal type, 1 calling convention.
+
+Target needs to implement:
+* CallLowering for IRTranslator Pass
+  * [AArch64](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/GISel/AArch64CallLowering.h)
+  * [AMDGPU](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AMDGPU/AMDGPUCallLowering.h)
+* LegalizerInfo for Legalizer Pass
+  * [AArch64](https://llvm.org/doxygen/classllvm_1_1AArch64LegalizerInfo.html)
+  * [AMDGPU](https://llvm.org/doxygen/classllvm_1_1AMDGPULegalizerInfo.html)
+* RegisterBankInfo for RegisterBankSelection Pass
+* InstructionSelection for InstructionSelector Pass
 
 ### 2019 Generating Optimized Code with GlobalISel
 * https://www.youtube.com/watch?v=8427bl_7k1g
