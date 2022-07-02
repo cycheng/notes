@@ -7,6 +7,7 @@ Contents:
     * [Virtual Registers](#virtual-registers)
     * [Subtarget Setup](#subtarget-setup)
     * [Initialize GlobalISel](#initialize-globalisel-and-globalisel-passes)
+    * [Update CMakeLists.txt](#update-cmakeliststxt)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
@@ -187,6 +188,7 @@ class AArch64PassConfig : public TargetPassConfig {
   bool addRegBankSelect() override;
   bool addGlobalInstructionSelect() override;
 
+  // Additional passes between major passes.
   void addPreLegalizeMachineIR() override;
   void addPreRegBankSelect() override;
   void addPreGlobalInstructionSelect() override;
@@ -238,6 +240,39 @@ bool AArch64PassConfig::addGlobalInstructionSelect() {
   return false;
 }
 ```
+
+#### Update CMakeLists.txt
+[AArch64/CMakeLists.txt](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/CMakeLists.txt)
+```
+
+tablegen(LLVM AArch64GenGlobalISel.inc -gen-global-isel)
+tablegen(LLVM AArch64GenO0PreLegalizeGICombiner.inc -gen-global-isel-combiner
+              -combiners="AArch64O0PreLegalizerCombinerHelper")
+tablegen(LLVM AArch64GenPreLegalizeGICombiner.inc -gen-global-isel-combiner
+              -combiners="AArch64PreLegalizerCombinerHelper")
+tablegen(LLVM AArch64GenPostLegalizeGICombiner.inc -gen-global-isel-combiner
+              -combiners="AArch64PostLegalizerCombinerHelper")
+tablegen(LLVM AArch64GenPostLegalizeGILowering.inc -gen-global-isel-combiner
+              -combiners="AArch64PostLegalizerLoweringHelper")
+...
+tablegen(LLVM AArch64GenRegisterBank.inc -gen-register-bank)
+
+add_llvm_target(AArch64CodeGen
+  GISel/AArch64CallLowering.cpp
+  GISel/AArch64GlobalISelUtils.cpp
+  GISel/AArch64InstructionSelector.cpp
+  GISel/AArch64LegalizerInfo.cpp
+  GISel/AArch64O0PreLegalizerCombiner.cpp
+  GISel/AArch64PreLegalizerCombiner.cpp
+  GISel/AArch64PostLegalizerCombiner.cpp
+  GISel/AArch64PostLegalizerLowering.cpp
+  GISel/AArch64PostSelectOptimize.cpp
+  GISel/AArch64RegisterBankInfo.cpp
+
+  LINK_COMPONENTS
+  GlobalISel
+```
+
 
 
 ### 2019 Generating Optimized Code with GlobalISel
