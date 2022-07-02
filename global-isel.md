@@ -2,6 +2,10 @@ Contents:
 =========
 * [LLVM Dev](#llvm-dev)
   * [2017 Tutorial: Head First into GlobalISel](#2017-tutorial-head-first-into-globalisel)
+    * [MIR example and test]()
+    * [Virtual Registers]()
+    * [Subtarget Setup]()
+    * [Initialize GlobalISel]()
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
@@ -163,6 +167,74 @@ const LegalizerInfo *AArch64Subtarget::getLegalizerInfo() const {
 
 const RegisterBankInfo *AArch64Subtarget::getRegBankInfo() const {
   return RegBankInfo.get();
+}
+```
+
+#### Initialize GlobalISel and GlobalISel Passes
+[AArch64TargetMachine.cpp](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/AArch64TargetMachine.cpp)
+```c++
+extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeAArch64Target() {
+  auto PR = PassRegistry::getPassRegistry();
+  initializeGlobalISel(*PR);
+```
+
+```c++
+/// AArch64 Code Generator Pass Configuration Options.
+class AArch64PassConfig : public TargetPassConfig {
+  bool addIRTranslator() override;
+  bool addLegalizeMachineIR() override;
+  bool addRegBankSelect() override;
+  bool addGlobalInstructionSelect() override;
+
+  void addPreLegalizeMachineIR() override;
+  void addPreRegBankSelect() override;
+  void addPreGlobalInstructionSelect() override;
+};
+
+bool AArch64PassConfig::addIRTranslator() {
+  addPass(new IRTranslator(getOptLevel()));
+  return false;
+}
+
+bool AArch64PassConfig::addLegalizeMachineIR() {
+  addPass(new Legalizer());
+  return false;
+}
+
+bool AArch64PassConfig::addRegBankSelect() {
+  addPass(new RegBankSelect());
+  return false;
+}
+
+void AArch64PassConfig::addPreGlobalInstructionSelect() {
+  addPass(new Localizer());
+}
+
+void AArch64PassConfig::addPreLegalizeMachineIR() {
+  if (getOptLevel() == CodeGenOpt::None)
+    addPass(createAArch64O0PreLegalizerCombiner());
+  else {
+    addPass(createAArch64PreLegalizerCombiner());
+    if (EnableGISelLoadStoreOptPreLegal)
+      addPass(new LoadStoreOpt());
+  }
+}
+
+void AArch64PassConfig::addPreRegBankSelect() {
+  bool IsOptNone = getOptLevel() == CodeGenOpt::None;
+  if (!IsOptNone) {
+    addPass(createAArch64PostLegalizerCombiner(IsOptNone));
+    if (EnableGISelLoadStoreOptPostLegal)
+      addPass(new LoadStoreOpt());
+  }
+  addPass(createAArch64PostLegalizerLowering());
+}
+
+bool AArch64PassConfig::addGlobalInstructionSelect() {
+  addPass(new InstructionSelect(getOptLevel()));
+  if (getOptLevel() != CodeGenOpt::None)
+    addPass(createAArch64PostSelectOptimize());
+  return false;
 }
 ```
 
