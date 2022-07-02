@@ -1,7 +1,7 @@
 Contents:
 =========
 * [LLVM Dev](#llvm-dev)
-  * [Tutorial: Head First into GlobalISel](#2017-tutorial-head-first-into-globalisel)
+  * [2017 Tutorial: Head First into GlobalISel](#2017-tutorial-head-first-into-globalisel)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
@@ -28,13 +28,144 @@ We choose a simple backend BPF Backend to demostrate the porting, because BPF ha
 
 Target needs to implement:
 * CallLowering for IRTranslator Pass
-  * [AArch64](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/GISel/AArch64CallLowering.h)
-  * [AMDGPU](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AMDGPU/AMDGPUCallLowering.h)
+  * [AArch64CallLowering](https://llvm.org/doxygen/classllvm_1_1AArch64CallLowering.html)
+  * [AMDGPUCallLowering](https://llvm.org/doxygen/classllvm_1_1AMDGPUCallLowering.html)
 * LegalizerInfo for Legalizer Pass
-  * [AArch64](https://llvm.org/doxygen/classllvm_1_1AArch64LegalizerInfo.html)
-  * [AMDGPU](https://llvm.org/doxygen/classllvm_1_1AMDGPULegalizerInfo.html)
-* RegisterBankInfo for RegisterBankSelection Pass
-* InstructionSelection for InstructionSelector Pass
+  * [AArch64LegalizerInfo](https://llvm.org/doxygen/classllvm_1_1AArch64LegalizerInfo.html)
+  * [AMDGPULegalizerInfo](https://llvm.org/doxygen/classllvm_1_1AMDGPULegalizerInfo.html)
+* RegisterBankInfo for RegisterBankSelect Pass
+  * AArch64
+    * [AArch64RegisterBankInfo](https://llvm.org/doxygen/classllvm_1_1AArch64RegisterBankInfo.html)
+    * [AArch64GenRegisterBankInfo.def](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/AArch64GenRegisterBankInfo.def)
+  * AMDGPU
+    * [AMDGPURegisterBankInfo](https://llvm.org/doxygen/classllvm_1_1AMDGPURegisterBankInfo.html)
+    * [AMDGPUGenRegisterBankInfo.def](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AMDGPU/AMDGPUGenRegisterBankInfo.def)
+* InstructionSelect for InstructionSelector Pass
+  * [AArch64InstructionSelector](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/GISel/AArch64InstructionSelector.cpp)
+  * [AMDGPUInstructionSelector](https://llvm.org/doxygen/classllvm_1_1AMDGPUInstructionSelector.html)
+
+Note, pass execution sequence: IRTranslator (CallLowering) -> Legalizer -> RegisterBankSelect -> InstructionSelect
+
+But implementation sequence: CallLowering -> RegisterBankSelect -> Legalizer -> InstructionSelect
+
+Because there are some places need to refer into it.
+
+#### MIR example and test
+```llvm
+; llc -global-isel -march=bpf -stop-after=irtranslator -simplify-mir
+;
+; llc emits MIR when told to -stop-after machine passes
+; Use -simplify-mir to generate human-editable output
+;
+; llvm                                  ; mir
+define i32 @double(i32 %x) {            name: double
+  %y = add i32 %x, %x                   legalized: false
+  ret i32 %y                            regBankSelected: false
+}                                       body: |
+                                          bb.0:
+                                            liveins: %r1, %r2
+
+                                            %1:_(s64) = COPY %r1
+                                            %0:_(s32) = G_TRUNC %1(s64)
+                                            %2:_(s32) = G_ADD %0, %0
+                                            %r0 = COPY %2(s32)
+                                            RET implicit %r0
+```
+* We can also use llc -run-pass and a .mir input to just run one pass
+
+#### Virtual Registers
+```llvm
+%1:_(s64) = COPY %r1
+
+%1:<bank>(s64) = COPY %r1
+
+%1:<class> = COPY %r1
+```
+* %r1 (and %r2) are target registers
+* %0,1,2,... (number only) are virtual registers
+* Constraint is attached to virtual register, e.g. bank, class, ...etc.
+
+Uses regular expression to match virtual register when writting test cases.
+```llvm
+; CHECK: [[CP:%[0-9]+]]:_(s64) = COPY %r1
+; CHECK: [[TR:%[0-9]+]]:_(s32) = G_TRUNC [[CP]](s64)
+; CHECK: [[ADD:%[0-9]+]]:_(s32) = G_ADD [[TR]], [[TR]]
+%1:_(s64) = COPY %r1
+%0:_(s32) = G_TRUNC %1(s64)
+%2:_(s32) = G_ADD %0, %0
+```
+
+#### Subtarget Setup
+```c++
+BPFSubtarget : BPFGenSubtargetInfo
+  getCallLowering(...)
+  getRegBankInfo(...)
+  getLegalizerInfo(...)
+  getInstructionSelector(...)
+```
+
+[AArch64Subtarget.h](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/AArch64Subtarget.h)
+```c++
+// 
+#define GET_SUBTARGETINFO_HEADER
+#include "AArch64GenSubtargetInfo.inc"
+
+class AArch64Subtarget final : public AArch64GenSubtargetInfo {
+  ..
+  /// GlobalISel related APIs.
+  std::unique_ptr<CallLowering> CallLoweringInfo;
+  std::unique_ptr<InlineAsmLowering> InlineAsmLoweringInfo;
+  std::unique_ptr<InstructionSelector> InstSelector;
+  std::unique_ptr<LegalizerInfo> Legalizer;
+  std::unique_ptr<RegisterBankInfo> RegBankInfo;
+
+  const CallLowering *getCallLowering() const override;
+  const InlineAsmLowering *getInlineAsmLowering() const override;
+  InstructionSelector *getInstructionSelector() const override;
+  const LegalizerInfo *getLegalizerInfo() const override;
+  const RegisterBankInfo *getRegBankInfo() const override;
+};
+```
+
+[AArch64Subtarget.cpp](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/AArch64Subtarget.cpp)
+```c++
+AArch64Subtarget::AArch64Subtarget(...) {
+  CallLoweringInfo.reset(new AArch64CallLowering(*getTargetLowering()));
+  InlineAsmLoweringInfo.reset(new InlineAsmLowering(getTargetLowering()));
+  Legalizer.reset(new AArch64LegalizerInfo(*this));
+
+  auto *RBI = new AArch64RegisterBankInfo(*getRegisterInfo());
+
+  // FIXME: At this point, we can't rely on Subtarget having RBI.
+  // It's awkward to mix passing RBI and the Subtarget; should we pass
+  // TII/TRI as well?
+  InstSelector.reset(createAArch64InstructionSelector(
+      *static_cast<const AArch64TargetMachine *>(&TM), *this, *RBI));
+
+  RegBankInfo.reset(RBI);
+}
+
+const CallLowering *AArch64Subtarget::getCallLowering() const {
+  return CallLoweringInfo.get();
+}
+
+const InlineAsmLowering *AArch64Subtarget::getInlineAsmLowering() const {
+  return InlineAsmLoweringInfo.get();
+}
+
+InstructionSelector *AArch64Subtarget::getInstructionSelector() const {
+  return InstSelector.get();
+}
+
+const LegalizerInfo *AArch64Subtarget::getLegalizerInfo() const {
+  return Legalizer.get();
+}
+
+const RegisterBankInfo *AArch64Subtarget::getRegBankInfo() const {
+  return RegBankInfo.get();
+}
+```
+
 
 ### 2019 Generating Optimized Code with GlobalISel
 * https://www.youtube.com/watch?v=8427bl_7k1g
