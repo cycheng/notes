@@ -8,6 +8,7 @@ Contents:
     * [Subtarget Setup](#subtarget-setup)
     * [Initialize GlobalISel](#initialize-globalisel-and-globalisel-passes)
     * [Update CMakeLists.txt](#update-cmakeliststxt)
+    * [IRTranslator and Implement CallLowering](#irtranslator-and-implement-callinglowering)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
@@ -272,6 +273,85 @@ add_llvm_target(AArch64CodeGen
   LINK_COMPONENTS
   GlobalISel
 ```
+
+#### IRTranslator and Implement ABI Lowering - CallLowering
+BPF example:
+```c++
+bool BPFCallLowering::lowerReturn(
+  MachineIRBuilder &MIRBuilder,
+  const Value *Val, unsigned VReg) const {
+  if (VReg)
+  return false;
+  MIRBuilder.buildInstr(BPF::RET);
+  return true;
+} 
+```
+
+```llvm
+; llc -global-isel -march=bpf -stop-after=irtranslator
+define void @f() {          name: test_void
+  ret void                  body: |
+}                             bb.0:
+                                RET
+```
+
+[AArch64CallLowering.h](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/GISel/AArch64CallLowering.h)
+```c++
+class AArch64CallLowering: public CallLowering {
+public:
+  bool lowerReturn(MachineIRBuilder &MIRBuilder, const Value *Val,
+                   ArrayRef<Register> VRegs, FunctionLoweringInfo &FLI,
+                   Register SwiftErrorVReg) const override;
+
+  bool lowerFormalArguments(MachineIRBuilder &MIRBuilder, const Function &F,
+                            ArrayRef<ArrayRef<Register>> VRegs,
+                            FunctionLoweringInfo &FLI) const override;
+
+  bool lowerCall(MachineIRBuilder &MIRBuilder,
+                 CallLoweringInfo &Info) const override;
+```
+
+[AArch64CallLowering.cpp](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AArch64/GISel/AArch64CallLowering.cpp)
+```c++
+bool AArch64CallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
+                                      const Value *Val,
+                                      ArrayRef<Register> VRegs,
+                                      FunctionLoweringInfo &FLI,
+                                      Register SwiftErrorVReg) const {
+  auto MIB = MIRBuilder.buildInstrNoInsert(AArch64::RET_ReallyLR);
+  if (!VRegs.empty()) {
+    ...
+    SmallVector<EVT, 4> SplitEVTs;
+    ComputeValueVTs(TLI, DL, Val->getType(), SplitEVTs);
+    ...
+    for (unsigned i = 0; i < SplitEVTs.size(); ++i) {
+      ...
+      splitToValueTypes(CurArgInfo, SplitArgs, DL, CC);
+    }
+
+    AArch64OutgoingValueAssigner Assigner(AssignFn, AssignFn, Subtarget,
+                                          /*IsReturn*/ true);
+    OutgoingArgHandler Handler(MIRBuilder, MRI, MIB);
+    Success = determineAndHandleAssignments(Handler, Assigner, SplitArgs,
+                                            MIRBuilder, CC, F.isVarArg());
+  }
+
+  MIRBuilder.insertInstr(MIB);
+  return Success;
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
