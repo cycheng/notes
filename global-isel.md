@@ -11,7 +11,9 @@ Contents:
     * [IRTranslator and Implement CallLowering](#irtranslator-and-implement-abi-lowering---calllowering)
     * [Value Handlers](#value-handlers)
     * [Value Handlers - Argument Handling](#value-handlers---argument-handling)
-    * [Value Handlers - Lower Formal Args](#value-handlers---lower-formal-args)
+    * [Lower Formal Args + FormalArgHandler](#lower-formal-args--formalarghandler)
+    * [Value Handlers - Return value handling](#value-handlers---return-value-handling)
+    * [Lower Return + OutgoingHandler](#lower-return--outgoinghandler)
     * 
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
@@ -509,6 +511,157 @@ define i32 @f(i32 %a) {               name: f
                                           RET implicit %r0
 ```
 
+#### Register Banks - Define Register Banks
+* Group register classes, ignoring size and type
+* Different banks imply transferring values is costly
+* A typical split is general purpose vs floating point
+
+Define register banks:
+
+BPFRegisterBanks.td
+```c++
+def AnyGPRRegBank : RegisterBank<"AnyGPR", [GPR]>;
+```
+* Needs to be care about naming collision, the RegisterClass and RegisterBank
+  should not have the same name
+  * (CY) TableGen warns when ambiguity happens!
+
+More complex example:
+
+AArch64RegisterInfo.td
+```c++
+//===----------------------------------------------------------------------===//
+// Floating Point Scalar Registers
+//===----------------------------------------------------------------------===//
+def FPR8  : RegisterClass<"AArch64", [untyped], 8, (sequence "B%u", 0, 31)> { let Size = 8; }
+def FPR16 : RegisterClass<"AArch64", [f16, bf16], 16, (sequence "H%u", 0, 31)> { let Size = 16; }
+...
+def DD   : RegisterClass<"AArch64", [untyped], 64, (add DSeqPairs)> { let Size = 128; }
+def DDD  : RegisterClass<"AArch64", [untyped], 64, (add DSeqTriples)> { let Size = 192; }
+def DDDD : RegisterClass<"AArch64", [untyped], 64, (add DSeqQuads)> { let Size = 256; }
+def QQ   : RegisterClass<"AArch64", [untyped], 128, (add QSeqPairs)> { let Size = 256; }
+def QQQ  : RegisterClass<"AArch64", [untyped], 128, (add QSeqTriples)> { let Size = 384; }
+def QQQQ : RegisterClass<"AArch64", [untyped], 128, (add QSeqQuads)> { let Size = 512; }
+...
+```
+
+AArch64RegisterBanks.td
+```c++
+/// General Purpose Registers: W, X.
+def GPRRegBank : RegisterBank<"GPR", [XSeqPairsClass]>;
+
+/// Floating Point/Vector Registers: B, H, S, D, Q.
+def FPRRegBank : RegisterBank<"FPR", [QQQQ]>;
+
+/// Conditional register: NZCV.
+def CCRegBank : RegisterBank<"CC", [CCR]>;
+```
+* We actually only list single register bank, because generator will walk
+  through subregisters and it will gather things for you, so we can just use the
+  largest register class to define each bank
+
+#### Generated Bank Info
+```c++
+class BPFGenRegisterBankInfo : public RegisterBankInfo {
+protected:
+  #define GET_TARGET_REGBANK_CLASS
+  #include "BPFGenRegisterBank.inc"
+};
+```
+* Once we do the tablegen stuff, we can then implement GenRegisterBankInfo, note
+  that tablegen might fully generate it in the future, but there are some
+  targets that do some funny stuff here, so now here we need to do some
+  boilerplate.
+
+[AMDGPURegisterBankInfo.h](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AMDGPU/AMDGPURegisterBankInfo.h)
+```c++
+class AMDGPUGenRegisterBankInfo : public RegisterBankInfo {
+
+protected:
+
+#define GET_TARGET_REGBANK_CLASS
+#include "AMDGPUGenRegisterBank.inc"
+};
+```
+
+#### Implement Register Bank Mapping
+```c++
+class BPFRegisterBankInfo : public BPFGenRegisterBankInfo {
+  getRegBankFromRegClass(...) override;
+```
+* Given a register class, return the register bank.
+* Probably a simple switch.
+* Note! 
+  * In this point you have actually implemented enough of the register
+    bank info, that you can start moving on. You can probably implement most of
+    the legalizer and most of the instruction selection with just this much of
+    the register bank stuff.
+  * However to get the actual register bank selection pass working, we need to
+    talk about these instruction mappings.
+
+```c++
+  getInstrMapping(...) override;
+  getInstrAlternativeMappings(...) override;
+};
+```
+* These getInstr methods are taking MachineInstr, and they need to associate
+  each of of the operands with the appropriate register bank
+
+```c++
+BPFRegisterBankInfo::getInstrMapping(...) {
+  const auto &Mapping = getInstrMappingImpl(MI);
+  if (Mapping.isValid())
+   return Mapping; 
+```
+* Leverage (default implementation) getInstrMappingImpl to handle generic
+  instructions
+
+If failed, we need to write our own mapping:
+```c++
+  SmallVector<const ValueMapping *, 8> ValMappings(NumOperands);
+  for (unsigned Idx = 0; Idx < NumOperands; ++Idx) {
+    if (MI.getOperand(Idx).isReg()) {
+      LLT Ty = MRI.getType(MI.getOperand(Idx).getReg());
+      auto Size = Ty.getSizeInBits();
+      ValMappings[Idx] = &getValueMapping(0, Size, BPF::AnyGPRRegBank);
+    }
+  }
+}
+```
+* You are gonna to create this vector of value mappings one for each operand,
+  and the position in the vector should match the operand number
+* These value mappings have to say what the size of the value is and which
+  register bank it belongs
+* For BPF this is straightforward. For most backends, You will do different
+  stuff depending on the machine instruction. You will switch over the
+  instruction type and then setup the mappings.
+
+Test
+```llvm
+; llc -march=bpf -global-isel -run-pass=regbankselect
+define i32 @f(i32 %a) {               name: f
+  ret i32 %a                            body: |
+}                                       bb.0:
+                                          %0:anygpr(s64) = COPY %r1
+                                          %1:anygpr(s32) = G_TRUNC %0
+                                          %2:anygpr(s64) = G_ANYEXT %1
+                                          %r0 = COPY %2
+                                          RET implicit %r0
+```
+
+
+//------------------------------------------------------------------------------
+
+```c++
+
+class AMDGPURegisterBankInfo final : public AMDGPUGenRegisterBankInfo {
+public:
+  const GCNSubtarget &Subtarget;
+  const SIRegisterInfo *TRI;
+  const SIInstrInfo *TII;
+
+};
+```
 //------------------------------------------------------------------------------
 
 
