@@ -17,7 +17,8 @@ Contents:
     * [Register Banks - Define Register Banks](#register-banks---define-register-banks)
     * [Generated Bank Info](#generated-bank-info)
     * [Implement Register Bank Mapping](#implement-register-bank-mapping)
-    * 
+    * [Implement Register Bank Mapping - AlternativeMappings](#implement-register-bank-mapping---alternativemappings)
+    * [Legalizer (つづき)](#legalizer-つづき)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
