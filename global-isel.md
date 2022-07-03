@@ -14,6 +14,9 @@ Contents:
     * [Lower Formal Args + FormalArgHandler](#lower-formal-args--formalarghandler)
     * [Value Handlers - Return value handling](#value-handlers---return-value-handling)
     * [Lower Return + OutgoingHandler](#lower-return--outgoinghandler)
+    * [Register Banks - Define Register Banks](#register-banks---define-register-banks)
+    * [Generated Bank Info](#generated-bank-info)
+    * [Implement Register Bank Mapping](#implement-register-bank-mapping)
     * 
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
@@ -649,11 +652,32 @@ define i32 @f(i32 %a) {               name: f
                                           RET implicit %r0
 ```
 
+#### Implement Register Bank Mapping - AlternativeMappings
+What happen if there are more reasonable options? For example in AArch64 there
+are 32-bit and 64-bit OR, and these map equally well into floating point and
+general purpose register.
+```c++
+getInstrAlternativeMappings() {
+  case TargetOpcode::G_OR: {
+    InstructionMappings AltMappings;
+    AltMappings.push_back(getInstructionMapping(
+        /*ID*/ 1, /*Cost*/ 1, getValueMapping(PMI_FirstGPR, Size),
+        /*NumOperands*/ 3));
+    AltMappings.push_back(getInstructionMapping(
+        /*ID*/ 2, /*Cost*/ 1, getValueMapping(PMI_FirstFPR, Size),
+        /*NumOperands*/ 3));
+    return AltMappings;
+  }
+}
+```
+* The pass will go and look at the context of where this instruction is going
+  and make a choice for you based on what's around it
 
-//------------------------------------------------------------------------------
+#### Legalizer (つづき)
+https://youtu.be/Zh4R40ZyJ2k?list=PLpv_m0nwnMNF_b9yzBGiFtn7BA7EJ9QsC&t=1167
+
 
 ```c++
-
 class AMDGPURegisterBankInfo final : public AMDGPUGenRegisterBankInfo {
 public:
   const GCNSubtarget &Subtarget;
