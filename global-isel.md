@@ -9,6 +9,7 @@ Contents:
     * [Initialize GlobalISel](#initialize-globalisel-and-globalisel-passes)
     * [Update CMakeLists.txt](#update-cmakeliststxt)
     * [IRTranslator and Implement CallLowering](#irtranslator-and-implement-abi-lowering---calllowering)
+    * [Value Handlers](#value-handlers)
   * [2019 Generating Optimized Code with GlobalISel](#2019-generating-optimized-code-with-globalisel)
     * [Anatomy of GlobalISel](#anatomy-of-globalisel)
     * [Combiner](#combiner)
@@ -340,6 +341,72 @@ bool AArch64CallLowering::lowerReturn(MachineIRBuilder &MIRBuilder,
   return Success;
 }
 ```
+
+#### Value Handlers
+* Figuring out where an argument or return value goes. This is mostly done
+  through tablegen function and calling convention function.
+* Target needs to *create ValueHandler for each method*, e.g. lowerReturn/
+  lowerCall/lowerArgument/..., and create a bunch of objects which represent
+  what you want to copy into, and pass these into handleAssignments
+  (CY: determineAndHandleAssignments)
+* handleAssignments (determineAndHandleAssignments) will then use handler and
+  perform the load/store/register-copy for you
+
+```c++
+class BPFHandler : public ValueHandler {
+  getStackAddress(...)
+  assignValueToAddress(...)
+  assignValueToReg(...)
+};
+
+// Calling Convention Target-Description:
+// Promote ints to i64.
+CCIfType<[ i8, i16, i32 ], CCPromoteToType<i64>>,
+
+// Pass args in registers.
+CCIfType<[i64], CCAssignToReg<[ R1, R2, R3, R4, R5 ]>>,
+
+// The return is stored in R0.
+```
+
+#### Value Handlers - Argument Handling
+
+```c++
+class FormalArgHandler : public BPFHandler {
+  assignValueToReg(...);
+};
+
+// ValVReg: The where the argument to be
+// PhysReg: Where the argument been assigned
+void FormalArgHandler::assignValueToReg(unsigned ValVReg, unsigned PhysReg,
+                                        CCValAssign &VA) override {
+  switch (VA.getLocInfo()) {
+  default:                                        // Sizes match:
+    MIRBuilder.buildCopy(ValVReg, PhysReg);       %ValVReg:_(s32) = COPY PhysReg
+    break;
+
+
+  case CCValAssign::LocInfo::SExt:                // Sizes not match! Extended Assign
+  case CCValAssign::LocInfo::ZExt:
+  case CCValAssign::LocInfo::AExt: {
+    auto Copy = MIRBuilder.buildCopy(             // Create temporary virtual register:
+      LLT{VA.getLocVT()}, PhysReg);               %tmp:_(s64) = COPY PhysReg 
+      
+    MIRBuilder.buildTrunc(ValVReg, Copy);         // And build trunc for ValVReg:
+    break;                                        %ValVReg:_(s32) = G_TRUNC %tmp(s64)
+  }
+  }
+  MIRBuilder.getMBB().addLiveIn(PhysReg);         // Add PhysReg to the BasicBlock
+}
+```
+
+#### Value Handlers - Lower Formal Args
+
+//------------------------------------------------------------------------------
+
+
+
+
 
 
 
