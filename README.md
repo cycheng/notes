@@ -35,6 +35,8 @@
   - https://arxiv.org/pdf/2102.05187.pdf
 
 ## Read
+* [How CUDA Programming Works](https://www.nvidia.com/en-us/on-demand/session/gtcspring22-s41487/)
+  * 
 * GEF - GDB Enhanced Features
   * https://hugsy.github.io/gef/commands/context/#editing-context-layout
   * https://hugsy.github.io/gef/commands/config/
