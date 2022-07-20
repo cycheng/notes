@@ -39,7 +39,7 @@
   * 
 * CompileExplore with llvm optimization pipeline viewer
   * https://twitter.com/JeremyRifkin/status/1543245065363005441/photo/1
-  * godbolt.org/z/xa7q4GToz
+  * [godbolt.org/z/xa7q4GToz](https://godbolt.org/z/xa7q4GToz)
 * GEF - GDB Enhanced Features
   * https://hugsy.github.io/gef/commands/context/#editing-context-layout
   * https://hugsy.github.io/gef/commands/config/
