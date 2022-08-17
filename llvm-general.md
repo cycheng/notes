@@ -2,7 +2,8 @@ Contents:
 =========
 * [Automatic verification of LLVM optimizations](#automatic-verification-of-llvm-optimizations)
 * [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
-* [Generate code for arm/amdgcn/nvptx on x86](#generate-code-for-armamdgcnnvptx-on-x86)
+* [Generate code for arm/amdgcn/nvptx](#generate-code-for-armamdgcnnvptx)
+* [Compile opencl with amdgcn/nvptx target](#compile-opencl-with-amdgcnnvptx-target)
 * [clang -ftime-trace](#clang--ftime-trace)
 * [TIPs](#tips)
   * [clone-function](#clone-function)
