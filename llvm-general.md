@@ -2,7 +2,7 @@ Contents:
 =========
 * [Automatic verification of LLVM optimizations](#automatic-verification-of-llvm-optimizations)
 * [Code: New pass manager add pass method](#code-new-pass-manager-add-pass-method)
-* [Generate code for arm/amdgcn on x86](#generate-code-for-armamdgcn-on-x86)
+* [Generate code for arm/amdgcn/nvptx on x86](#generate-code-for-armamdgcnnvptx-on-x86)
 * [clang -ftime-trace](#clang--ftime-trace)
 * [TIPs](#tips)
   * [clone-function](#clone-function)
@@ -83,17 +83,36 @@ Contents:
   * [Substitution failure is not an error](https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error)
   * [What does template<class = enable_if_t<...>> do?](https://stackoverflow.com/questions/49659590/what-does-templateclass-enable-if-t-do)
 
-### Generate code for arm/amdgcn on x86
+### Generate code for arm/amdgcn/nvptx
 * arm's --target: https://developer.arm.com/documentation/dui0774/b/compiler-command-line-options/-mcpu
 * amdgcn: https://llvm.org/docs/AMDGPUUsage.html
+* nvptx: https://llvm.org/docs/NVPTXUsage.html
+* cuda: https://en.wikipedia.org/wiki/CUDA
 * examples:
   ```shell
   clang-13 --target=aarch64-arm-none-eabi -S -O3 -mllvm -print-after-all test.c > test.ll 2>&1
   clang-13 --target=armv7a-arm-none-eabi -mcpu=cortex-a15 -mfloat-abi=hard -S -O3 test.c
   clang-13 --target=amdgcn -S -O3 test.c
+
+  clang-13 --target=nvptx64 -S -O3 -emit-llvm test.c
+  llc-13 -O3 -mcpu=sm_80 test.ll -o test.s
+  
   # test global i-sel
   clang-13 --target=aarch64-arm-none-eabi -fglobal-isel -S -O3 test.c
   ```
+
+### Compile opencl with amdgcn/nvptx target
+* https://clang.llvm.org/docs/OpenCLSupport.html
+* amdgcn: https://llvm.org/docs/AMDGPUUsage.html
+* nvptx: https://llvm.org/docs/NVPTXUsage.html
+* cuda: https://en.wikipedia.org/wiki/CUDA
+* examples:
+  ```shell
+  clang-13 -target amdgcn -mcpu=gfx1030 -Xclang -finclude-default-header -O3 -S test.cl -o test.s
+  clang-13 -target nvptx64 -Xclang -finclude-default-header -O3 -S -emit-llvm test.cl
+  llc-13 -O3 -mcpu=sm_80 test.ll -o test.s
+  ```
+
 
 ### clang -ftime-trace
 
