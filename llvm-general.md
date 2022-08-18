@@ -7,6 +7,7 @@ Contents:
 * [clang -ftime-trace](#clang--ftime-trace)
 * [TIPs](#tips)
   * [clone-function](#clone-function)
+  * [debug pass](#debug-pass)
 
 ### Automatic verification of LLVM optimizations
 * Online tool:
@@ -178,3 +179,11 @@ Contents:
     }
   ```
 
+### debug pass
+```shell
+# print all debug info
+llc -debug ./test.ll
+
+# print only GlobalISel's instruction selector.
+llc -debug-only=instruction-select ./test.ll
+```
