@@ -1,4 +1,4 @@
-https://www.youtube.com/watch?v=uC0Jpfy5uj8
+https://youtu.be/uC0Jpfy5uj8
 
 https://www.servethehome.com/snapdragon-x-elite-qualcomm-oryon-cpu-design-and-architecture-hot-chips-2024-arm/
 
