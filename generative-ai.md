@@ -36,7 +36,19 @@ https://hao.cnyes.com/post/133793
   * Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL)
 ![image](https://github.com/user-attachments/assets/bde50e68-af54-4627-8dd2-239be143dbe6)
 
- 
+1. Introduction
+* we introduce MLA, an attention mechanism equipped with low-rank key-value joint compression.
+  Empirically, MLA achieves superior performance compared with MHA, significantly reduces the KV cache during inference, thus boosting the inference efficiency.
+* For Feed-Forward Networks (FFNs), we follow the DeepSeekMoE architecture (Dai et al., 2024), which adopts
+  fine-grained expert segmentation and shared expert isolation for higher potential in expert specialization 
+* We construct a high-quality and multi-source pre-training corpus consisting of 8.1T tokens.
+* DeepSeek-V2 Chat (SFT): we collect 1.5M conversational sessions, which encompass various domains such as math, code, 
+  writing, reasoning, safety, and more, to perform Supervised Fine-Tuning (SFT)  
+* DeepSeek-V2 Chat (RL): Finally, we employ Group Relative Policy Optimization (GRPO) to further align the model with
+  human preference
+![image](https://github.com/user-attachments/assets/44477fe4-c33f-4cce-9cc4-40c9f1257ed8)
+
+
 
 ## high-flyer
 * https://www.high-flyer.cn/blog/llama2-1/
