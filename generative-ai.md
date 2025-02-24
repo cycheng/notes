@@ -65,9 +65,14 @@ https://hao.cnyes.com/post/133793
   * For Feed-Forward Networks (FFNs), we adopt the DeepSeekMoE architecture (Dai et al., 2024), a
     high-performance MoE architecture that enables training strong models at an economical cost.
 
-Multi-Head Attention (MHA) 解釋 by DeepSeek V3:
-https://chat.deepseek.com/a/chat/s/e579d7f5-60ad-4fa2-87c3-88b37221b0a2
-**Multi-Head Attention (MHA)** 是 Transformer 模型中的核心機制，用於捕捉輸入序列中不同位置的關係。以下是其關鍵點：
+2.1. Multi-Head Latent Attention: Boosting Inference Efficiency
+
+2.1.1. Preliminaries: Standard Multi-Head Attention
+
+#### Multi-Head Attention (MHA) 解釋 by DeepSeek V3:
+* https://chat.deepseek.com/a/chat/s/e579d7f5-60ad-4fa2-87c3-88b37221b0a2
+
+Multi-Head Attention (MHA) 是 Transformer 模型中的核心機制，用於捕捉輸入序列中不同位置的關係。以下是其關鍵點：
 * Self-Attention 基礎
   * 通過計算輸入序列中每個元素與其他元素的相關性，生成加權表示。
   * 輸入序列 $$X = (x_1, x_2, \dots, x_n)$$\
@@ -97,7 +102,32 @@ https://chat.deepseek.com/a/chat/s/e579d7f5-60ad-4fa2-87c3-88b37221b0a2
 * 總結
   - **Multi-Head Attention** 通過並行計算多個 Self-Attention 頭，增強了模型捕捉多樣化特徵的能力，是 Transformer 模型成功的關鍵。
 
-2.1. Multi-Head Latent Attention: Boosting Inference Efficiency
+#### Multi-Head Attention (MHA) 解釋 by This paper 2.1.1:
+
+$\text{Let } d \text{ be the embedding dimension, }$\
+$n_h \text{ be the number of attention heads, }$\
+$d_h \text{ be the dimension per head, and }$\
+$h_t \in \mathbb{R}^d \text{ be the attention input of the 𝑡-th token at an attention layer.}$\
+Standard MHA first produces $q_t, k_t, v_t \in \mathbb{R}^{d_h n_h}$ through three matrices $W^Q, W^K, W^V \in \mathbb{R}^{d_h n_h \times d}$
+![image](https://github.com/user-attachments/assets/812a3f6e-4157-41e6-a204-f28eec731fdf)
+
+![image](https://github.com/user-attachments/assets/8868b2d6-7093-4bcf-a353-211a75412d8d)
+Figure 3 | Simplified illustration of Multi-Head Attention (MHA), Grouped-Query Attention (GQA), Multi-Query Attention (MQA), and Multi-head Latent Attention (MLA). Through
+jointly compressing the keys and values into a latent vector, MLA significantly reduces the KV
+cache during inference.
+
+Then, $q_t, k_t, v_t$ will be sliced into $n_h$ heads for the multi-head attention computation:
+![image](https://github.com/user-attachments/assets/37c9eb32-0668-4a36-9d21-b9e9730ba823)
+
+* where $q_{t,i}, k_{t,i}, v_{t,i} \in \mathbb{R}^{d_h}$ denote the query, key, and value of the 𝑖-th attention head, respectively;
+* $W^o \in \mathbb{R}^{d \times d_h n_h}$ denotes the output projection matrix.
+* During inference, all keys and values need to be cached to accelerate inference, so MHA needs to cache $2n_h d_h l$ elements for each token. 
+* In model deployment, this heavy KV cache is a large bottleneck that limits the maximum batch size and sequence length.
+
+2.1.2. Low-Rank Key-Value Joint Compression
+* The core of MLA is the low-rank joint compression for keys and values to reduce KV cache:
+![image](https://github.com/user-attachments/assets/19d3de7f-50ba-4d63-ad23-1e652a221c28)
+
 
 3. 
 
