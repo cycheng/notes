@@ -111,11 +111,6 @@ $h_t \in \mathbb{R}^d \text{ be the attention input of the 𝑡-th token at an a
 Standard MHA first produces $q_t, k_t, v_t \in \mathbb{R}^{d_h n_h}$ through three matrices $W^Q, W^K, W^V \in \mathbb{R}^{d_h n_h \times d}$
 ![image](https://github.com/user-attachments/assets/812a3f6e-4157-41e6-a204-f28eec731fdf)
 
-![image](https://github.com/user-attachments/assets/8868b2d6-7093-4bcf-a353-211a75412d8d)
-Figure 3 | Simplified illustration of Multi-Head Attention (MHA), Grouped-Query Attention (GQA), Multi-Query Attention (MQA), and Multi-head Latent Attention (MLA). Through
-jointly compressing the keys and values into a latent vector, MLA significantly reduces the KV
-cache during inference.
-
 Then, $q_t, k_t, v_t$ will be sliced into $n_h$ heads for the multi-head attention computation:
 ![image](https://github.com/user-attachments/assets/37c9eb32-0668-4a36-9d21-b9e9730ba823)
 
@@ -128,6 +123,51 @@ Then, $q_t, k_t, v_t$ will be sliced into $n_h$ heads for the multi-head attenti
 * The core of MLA is the low-rank joint compression for keys and values to reduce KV cache:
 ![image](https://github.com/user-attachments/assets/19d3de7f-50ba-4d63-ad23-1e652a221c28)
 
+* $c_t^{KV} \in \mathbb{R}^{d_c}$ is the compressed latent vector for keys and values;
+* $d_c(\ll d_h n_h)$ denotes the KV compression dimension;
+* $W^{DKV} \in \mathbb{R}^{d_c \times d}$ is the down-projection matrix;
+* $W^{UK}, W^{UV} \in \mathbb{R}^{d_h n_h \times d_c}$ are the up-projection matrices for keys and values, respectively.
+* During inference,
+  * MLA only needs to cache $c_t^{KV}$, so its KV cache has only $d_c l$ elements, where 𝑙 denotes the number of layers.
+  * $W^{UK}$ can be absorbed into $W^Q$
+  * $W^{UV}$ can be absorbed into $W^O$
+    * => we even do not need to compute keys and values out for attention.
+* Figure 3 intuitively illustrates how the KV joint compression in MLA reduces the KV cache
+![image](https://github.com/user-attachments/assets/8868b2d6-7093-4bcf-a353-211a75412d8d)
+Figure 3 | Simplified illustration of Multi-Head Attention (MHA), Grouped-Query Attention (GQA), Multi-Query Attention (MQA), and Multi-head Latent Attention (MLA). Through
+jointly compressing the keys and values into a latent vector, MLA significantly reduces the KV
+cache during inference.
+* in order to reduce the activation memory during training, we also perform low-rank compression for the queries, even if it cannot reduce the KV cache:
+![image](https://github.com/user-attachments/assets/7b0c7dc8-9437-4aa3-8963-680dd2e41905)
+  * $c_t^{Q} \in \mathbb{R}^{d_c'}$ is the compressed latent vector for queries;
+  * $d_c'(\ll d_h n_h)$ denotes the query compression dimension;\
+  * $W^{DQ} \in \mathbb{R}^{d_c' \times d}$ is the down-projection matrices
+  * $W^{UQ} \in \mathbb{R}^{d_h n_h \times d_c'}$ is the upprojection matrices
+
+2.1.3. Decoupled Rotary Position Embedding
+
+#### Rotary Position Embedding (RoPE) 解釋 by DeepSeek V3: https://chat.deepseek.com/a/chat/s/262576df-35bd-4615-8ae0-85b3ee45688a
+Rotary Position Embedding (RoPE) 是一種用於 Transformer 模型的位置編碼方法，旨在更好地捕捉序列中元素的位置信息。以下是其關鍵點：
+
+- 背景
+  - Transformer 模型依賴位置編碼來理解序列中元素的順序。
+  - 傳統方法如正弦和餘弦函數編碼位置信息，但可能無法充分捕捉相對位置關係。
+- RoPE 的核心思想
+  - 通過旋轉矩陣將位置信息嵌入到詞向量中。
+  - 每個位置對應一個旋轉角度，詞向量根據其位置進行旋轉，從而編碼位置信息。
+- 實現方式
+  - 對詞向量應用旋轉矩陣，旋轉角度與位置相關。
+  - 旋轉後的向量保留了位置信息，同時保持了向量的幾何特性。
+- 優點
+  - **相對位置編碼**：能更好地捕捉元素間的相對位置關係。
+  - **幾何特性保持**：旋轉操作保持了向量的幾何結構，有助於模型理解位置關係。
+  - **靈活性**：適用於不同長度和結構的序列。
+- 應用
+  - 主要用於自然語言處理任務，如機器翻譯、文本生成等。
+  - 也可用於其他需要處理序列數據的領域，如時間序列分析。
+- 總結: RoPE 通過旋轉矩陣將位置信息嵌入詞向量，提升了模型對序列位置關係的捕捉能力。
+
+![image](https://github.com/user-attachments/assets/233751a2-ec84-45b6-9771-623471943c66)
 
 3. 
 
