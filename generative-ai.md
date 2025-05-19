@@ -20,6 +20,9 @@ https://hao.cnyes.com/post/133793
 ## DeepSeek
 ### DeepSeek-VL2 - 2024 Jun 19
 * https://github.com/deepseek-ai/DeepSeek-VL2
+
+### DeepSeek-V2
+* https://github.com/deepseek-ai/DeepSeek-V2
 * a strong Mixture-of-Experts (MoE) language model
 * 236B total parameters, 21B are activated for each token,  context length of 128K tokens
 * innovative architectures
