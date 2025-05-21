@@ -122,6 +122,30 @@ Then, $q_t, k_t, v_t$ will be sliced into $n_h$ heads for the multi-head attenti
 * During inference, all keys and values need to be cached to accelerate inference, so MHA needs to cache $2n_h d_h l$ elements for each token. 
 * In model deployment, this heavy KV cache is a large bottleneck that limits the maximum batch size and sequence length.
 
+我的理解:
+[此表來自 chatgpt 4o:]([url](https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb))
+| 概念               | 意義               | 直觀比喻        |
+| ---------------- | ---------------- | ----------- |
+| Query            | 我要關注什麼？          | 發問者         |
+| Key              | 我能提供什麼資訊？        | 候選線索        |
+| Value            | 我的實際內容是什麼？       | 最後取用的答案     |
+| Attention(Q,K,V) | 找出最 relevant 的內容 | 問對問題、找到對的資料 |
+
+* 每個 head 關注不同的角度 (提出不同的問題)
+  * 每個 head 有自己的一套投影矩陣（Q/K/V），所以它可以從不同「語意子空間」去分析資料。
+  * 有的 head 專注語法，有的專注語意，有的關注相對位置。
+* query: 對一個 token 提出某個 head 的問題
+  * Query 是這個 token 在該 head 裡發出的一個查詢向量
+  * 試圖問：「我該關注誰？誰與我有語意上的連結？」
+* key: 這個 token 對某個 head 能提供什麼訊息
+  * Key 是其他 token 對應的「自我描述」：我是誰？我在這個語境中有什麼角色？
+  * 每個 token 對每個 head 會有不同的 Key，對應不同的「回答方式」
+* value: 這個訊息的實際內容
+  * Value 是 token 的語意內容，是當這個 token 被關注時，實際提供出來的資訊
+  * Attention 分數就是決定：要把這個 Value 加多少權重放進 output 中
+* 結論:
+  * 「Attention 是一種基於 Q–K 相似度的加權查詢，從所有 token 的 Value 中擷取資訊，組合出 contextual 表示。」
+
 2.1.2. Low-Rank Key-Value Joint Compression
 * The core of MLA is the low-rank joint compression for keys and values to reduce KV cache:
 ![image](https://github.com/user-attachments/assets/19d3de7f-50ba-4d63-ad23-1e652a221c28)
