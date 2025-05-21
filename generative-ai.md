@@ -125,6 +125,7 @@ Then, $q_t, k_t, v_t$ will be sliced into $n_h$ heads for the multi-head attenti
 我的理解:
 此表來自 chatgpt 4o:
 * https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb
+* 
 | 概念               | 意義               | 直觀比喻        |
 | ---------------- | ---------------- | ----------- |
 | Query            | 我要關注什麼？          | 發問者         |
