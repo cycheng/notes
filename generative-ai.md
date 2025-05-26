@@ -198,7 +198,16 @@ Rotary Position Embedding (RoPE) 是一種用於 Transformer 模型的位置編�
 
 ![image](https://github.com/user-attachments/assets/233751a2-ec84-45b6-9771-623471943c66)
 
-3. 
+2.1.4. Comparison of Key-Value Cache
+![image](https://github.com/user-attachments/assets/ec91ff04-ffc1-4088-a6f9-1746893a73ef)
+* $n_h$: the number of attention heads
+* $d_h$: the dimension per attention head
+* $𝑙$: the number of layers
+* $n_g$: the number of groups in GQA
+* $d_c$: the KV compression dimension in MLA
+* $d_h^R$: the per-head dimension of the decoupled queries and key in MLA
+* The amount of KV cache is measured by the number of elements, regardless of the storage precision
+  * For DeepSeek-V2, $d_c$ is set to $4 d_h$, $d_h^R$ is set to $\frac{d_h}{2}$
 
 ## high-flyer
 * https://www.high-flyer.cn/blog/llama2-1/
