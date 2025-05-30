@@ -224,6 +224,15 @@ Rotary Position Embedding (RoPE) 是一種用於 Transformer 模型的位置編�
 
   $s_{i,t} = Softmax_i({u_t}^Te_i),$ (22)
 
+  * $N_s$: the numbers of shared experts
+  * $N_r$: the numbers of routed experts
+  * $FFN_i^{(s)}(\bullet)$: the 𝑖-th shared expert
+  * $FFN_i^{(r)}(\bullet)$: the 𝑖-th routed expert
+  * $K_r$: the number of activated routed experts
+  * $g_{i,t}$: the gate value for the 𝑖-th expert
+  * $s_{i,t}$: the tokento-expert affinity
+  * $e_i$: the centroid of the 𝑖-th routed expert in this layer
+  * $Topk(\bullet,K)$: the set comprising 𝐾 highest scores among the affinity scores calculated for the 𝑡-th token and all routed experts.
 
 ## high-flyer
 * https://www.high-flyer.cn/blog/llama2-1/
