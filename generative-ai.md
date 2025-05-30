@@ -230,9 +230,82 @@ Rotary Position Embedding (RoPE) 是一種用於 Transformer 模型的位置編�
   * $FFN_i^{(r)}(\bullet)$: the 𝑖-th routed expert
   * $K_r$: the number of activated routed experts
   * $g_{i,t}$: the gate value for the 𝑖-th expert
-  * $s_{i,t}$: the tokento-expert affinity
+  * $s_{i,t}$: the token-to-expert affinity
   * $e_i$: the centroid of the 𝑖-th routed expert in this layer
   * $Topk(\bullet,K)$: the set comprising 𝐾 highest scores among the affinity scores calculated for the 𝑡-th token and all routed experts.
+
+#### FFN 解釋 by ChatGPT 4o
+* https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb
+* 在 Transformer 中，FFN 是作用在每個 token 的獨立兩層前饋神經網路。
+* 關鍵特性：
+  * 它不考慮上下文或其他 token（不像 attention）
+  * 它對序列中每個 token 的向量，逐個、獨立地處理
+  * 負責提供非線性轉換與資訊擴散
+* 數學定義
+  * 假設輸入向量為 $x \in \mathbb{R}^d$, FFN 的運算如下：
+    
+    $FFN(x) = W_2 \bullet \sigma(W_1x + b_1) + b_2$
+
+    * $W_1 \in \mathbb{R}^{d_{ff} \times d}$, 第一層：升維, 拓展語義空間
+      * 這是一個 線性投影，讓模型有更多空間做複雜的特徵轉換。
+      * 賦予 token 更高維的語義自由度: semantic expansion，例如：
+        * 情緒成分
+        * 語法類型
+        * 隱喻/比喻性
+      * 這一層不是簡單地拉大維度，而是讓模型能學到更豐富的語意特徵組合。
+    * $\sigma$：非線性啟動函數（通常是 ReLU 或 GELU）
+      * 讓神經網路不只是線性變換的堆疊
+      * 每個神經元可以「選擇性啟動」（啟動有意義的特徵，抑制無用的）
+      * 模擬大腦中不同神經元被特定輸入模式激活
+    * $W_2 \in \mathbb{R}^{d \times d_{ff}}$, 第二層：降維, 融合資訊, 輸出對齊
+      * 這是第二個線性變換，讓 FFN 的輸出跟原來的 token embedding 維度一致（例如 768 維），以便 residual connection 和後續處理。
+      * 將多個語意子特徵「壓縮」回 token 原始向量空間
+      * semantic synthesis
+      * 類似於：我們觀察一個詞從多角度分析後，把結論整理回主向量中
+    * $b_1, b_2$：偏差項（bias）
+* 為什麼要有兩層線性轉換 + 非線性？
+  * Transformer 的注意力機制主要負責：捕捉不同 token 之間的關係（上下文相關性）
+  * 但還不夠，因為語言的豐富性不只是關係，還包括：
+    * 一個 token 自身的語義如何轉換？
+    * 如何根據上下文重構 token 向量？
+    * 如何組合子詞、形態、情緒等多層次特徵？
+  * 這些就交給 Feed-Forward Network（FFN） 來做！
+* 常見設定
+  | 模型          | $d$（輸入維度） | $d_{\text{ff}}$（中間層） |
+  | ----------- | --------- | -------------------- |
+  | BERT Base   | 768       | 3072（即 4×768）        |
+  | GPT-2 Small | 768       | 3072                 |
+  | GPT-3       | 12288     | 49152                |
+  | LLaMA 2-7B  | 4096      | 11008（約 2.7×）        |
+
+  通常 FFN 的中間維度設為輸入維度的 4 倍（或 2.7～4 倍），這是為了讓模型能做更豐富的變換。
+* 在 Transformer 裡的位置
+  ```
+  x ──▶ Self-Attention ──▶ Add + LayerNorm ──▶ FFN ──▶ Add + LayerNorm
+  ```
+  FFN 接在注意力層後面，做「位置內部」的特徵轉換。
+* 為什麼要有 FFN？
+  | 目的             | 說明                               |
+  | -------------- | -------------------------------- |
+  | 提供非線性轉換        | 增強模型的表達能力                        |
+  | 對每個 token 獨立處理 | 注意力捕捉 token 間關係，FFN 專注在 token 本身 |
+  | 豐富每層的功能        | 模型不只能捕捉關係，還能進行特徵強化或壓縮            |
+* 進階變體
+  | 變體               | 說明                                                       |
+  | ---------------- | -------------------------------------------------------- |
+  | **SwiGLU**       | 將啟動函數替換為 gated variant，更穩定                               |
+  | **MoE-FFN**      | 使用稀疏 expert 分支（Mixture-of-Experts），例如 Switch Transformer |
+  | **Low-Rank FFN** | 降低參數量，提高推理效率（用於輕量化模型）                                    |
+* 小結
+  | 項目      | 說明                                   |
+  | ------- | ------------------------------------ |
+  | FFN 功能  | 對每個 token 向量做非線性轉換與升降維               |
+  | 是否看上下文？ | ❌ 否，token 獨立處理                       |
+  | 搭配什麼使用？ | Attention + Residual + LayerNorm     |
+  | 計算開銷    | 相對 attention 較小，但在大型模型中仍占顯著比例        |
+  | 常見維度比例  | $d_{\text{ff}} = 4 \times d$（或 2.7×） |
+
+
 
 ## high-flyer
 * https://www.high-flyer.cn/blog/llama2-1/
