@@ -209,6 +209,22 @@ Rotary Position Embedding (RoPE) 是一種用於 Transformer 模型的位置編�
 * The amount of KV cache is measured by the number of elements, regardless of the storage precision
   * For DeepSeek-V2, $d_c$ is set to $4 d_h$, $d_h^R$ is set to $\frac{d_h}{2}$
 
+2.2. DeepSeekMoE: Training Strong Models at Economical Costs
+
+2.2.1. Basic Architecture
+* For FFNs, we employ the DeepSeekMoE architecture (Dai et al., 2024)
+  * two key ideas:
+    * segmenting experts into finer granularity for higher expert specialization and more accurate knowledge acquisition
+    * isolating some shared experts for mitigating knowledge redundancy among routed experts
+* Let $u_t$ be the FFN input of the t-th token, we compute the FFN output $h_t^{\prime}$ as follows:
+  
+  $h_t^{\prime} = u_t + \displaystyle\sum_{i=1}^{N_s} FFN_i^{(s)}(u_t) + \displaystyle\sum_{i=1}^{N_r} g_{i,t} FFN_i^{(r)}(u_t),$ (20)
+
+  ![image](https://github.com/user-attachments/assets/3c959bc7-0c15-46df-9578-4fe4201dbc4e)
+
+  $s_{i,t} = Softmax_i({u_t}^Te_i),$ (22)
+
+
 ## high-flyer
 * https://www.high-flyer.cn/blog/llama2-1/
 * https://github.com/deepseek-ai/DeepSeek-VL2
