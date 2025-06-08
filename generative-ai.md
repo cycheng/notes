@@ -346,8 +346,9 @@ https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb
   | **效果** | 當 M ≥ 3 時，效能接近原始 top-K routing，但通訊大幅下降       |
 
 2.2.3. Auxiliary Loss for Load Balance
-* routing collapse
-  * unbalanced load
+* routing collapse causes unbalanced load
+* In expert parallelism
+  * unbalanced load will diminish computation efficiency
 * During the training of DeepSeek-V2, we design three kinds of auxiliary losses, for controlling
   * expert-level load balance ($\mathcal{L}_{ExpBal}$),
   * device-level load balance ($\mathcal{L}_{DevBal}$), and
@@ -362,6 +363,28 @@ https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb
     * 𝛼1 is a hyper-parameter called expert-level balance factor
     * 1(·) denotes the indicator function; and
     * 𝑇 denotes the number of tokens in a sequence.
+* Device-Level Balance Loss.
+  * to ensure balanced computation across different devices.
+  * in the training process of DeepSeek-V2, we partition all routed experts into 𝐷 groups
+    * ${\mathcal{E}_1,\mathcal{E}_2,...,\mathcal{E}_D}$
+    * deploy each group on a single device.
+
+      ![image](https://github.com/user-attachments/assets/b9979669-5565-4f83-bc68-8d8d15b1d0b8)
+
+    * where
+      * 𝛼2 is a hyper-parameter called device-level balance factor.
+
+* Communication Balance Loss.
+  * to ensure that the communication of each device is balanced
+  * if a certain device receives more tokens than other devices, the practical communication efficiency will also be affected
+
+    ![image](https://github.com/user-attachments/assets/a5a6acca-a480-4304-a837-8c011af3ca9b)
+
+    * where
+      * 𝛼3 is a hyper-parameter called communication balance factor
+* The device-limited routing mechanism: ensuring that each device transmits at most 𝑀𝑇 hidden states to other devices
+* the communication balance loss: to encourage each device to receive around 𝑀𝑇 hidden states from other devices
+  * guarantees a balanced exchange of information among devices, promoting efficient communications.
 
 ## high-flyer
 * https://www.high-flyer.cn/blog/llama2-1/
