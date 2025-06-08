@@ -345,7 +345,23 @@ https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb
   | **選法** | 先選 token 與其最相符的 M 張卡 → 再在這些卡上選 top-K experts |
   | **效果** | 當 M ≥ 3 時，效能接近原始 top-K routing，但通訊大幅下降       |
 
+2.2.3. Auxiliary Loss for Load Balance
+* routing collapse
+  * unbalanced load
+* During the training of DeepSeek-V2, we design three kinds of auxiliary losses, for controlling
+  * expert-level load balance ($\mathcal{L}_{ExpBal}$),
+  * device-level load balance ($\mathcal{L}_{DevBal}$), and
+  * communication balance ($\mathcal{L}_{CommBal}$), respectively.
+* Expert-Level Balance Loss. 
+  * Fedus et al., 2021; Lepikhin et al., 2021
+  * to mitigate the risk of routing collapse:
 
+    ![image](https://github.com/user-attachments/assets/58fe14f5-fb97-4453-863b-86e00b965a58)
+
+  * where
+    * 𝛼1 is a hyper-parameter called expert-level balance factor
+    * 1(·) denotes the indicator function; and
+    * 𝑇 denotes the number of tokens in a sequence.
 
 ## high-flyer
 * https://www.high-flyer.cn/blog/llama2-1/
