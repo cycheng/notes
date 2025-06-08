@@ -305,6 +305,46 @@ Rotary Position Embedding (RoPE) 是一種用於 Transformer 模型的位置編�
   | 計算開銷    | 相對 attention 較小，但在大型模型中仍占顯著比例        |
   | 常見維度比例  | $d_{\text{ff}} = 4 \times d$（或 2.7×） |
 
+#### 用一個例子解釋 Attention + FFN, by ChatGPT 4o
+* https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb
+
+2.2.2. Device-Limited Routing
+* We design a device-limited routing mechanism to bound MoE-related communication costs.
+* Due to the fine-grained expert segmentation in DeepSeekMoE, the number of activated experts can be large, so the MoE-related communication will be more costly if we apply expert parallelism.
+* beyond the naive top-K selection of routed experts, we additionally ensure that the target experts of each token will be distributed on at most 𝑀 devices
+* To be specific
+  * for each token, we first select 𝑀 devices that have experts with the highest affinity scores in them
+  * we perform top-K selection among experts on these 𝑀 devices
+  * In practice, we find that when $M \geq 3$, the device-limited routing can achieve a good performance roughly aligned with the unrestricted top-K routing
+
+#### 請 ChatGPT 4o 解釋 Device-Limited Routing
+https://chatgpt.com/share/682dc278-486c-800c-b0e5-6dd121f2dfdb
+* 背景：什麼是 MoE 的 expert routing？
+  * 在 MoE 模型中，每個 token 並不會經過全部的 FFN，而是被**路由（routing）**到少數幾個「專家（expert FFN）」中（例如 top-2 expert）。
+* 問題：當 expert 分布在不同 GPU 時
+  * 如果一個 token 被路由到的兩個 expert 分布在 不同 GPU，那這個 token 的中間資料就必須在 GPU 間傳輸，通訊成本會變高。
+  * 而 DeepSeek-V2 的 MoE 結構是 細粒度劃分（fine-grained expert segmentation），意味著：
+    * expert 數量變多
+    * 多數 expert 分布在不同設備
+    * 每個 token 很可能會被路由到跨好幾張卡 → 成本激增
+* 解法：Device-Limited Routing 機制
+  * 他們的解法是：對每個 token 限制其 expert 只能來自最多 M 張卡（device）。具體做法分兩步：
+    * Step 1: 挑出 M 張 device
+      * "we first select 𝑀 devices that have experts with the highest affinity scores in them."
+      * Affinity score：指 token 與該 device 上的 expert 的匹配程度（例如 logits）
+      * 挑出「最有可能有效的」M 張卡
+    * Step 2: 在這 M 張卡上的 expert 裡選 top-K
+      * "Then, we perform top-K selection among experts on these 𝑀 devices."
+      * 所以不是在全部 expert 裡選 top-K，而是在「這 M 張卡上的 experts 中選 top-K」
+* 小結
+  | 元素     | 解釋                                           |
+  | ------ | -------------------------------------------- |
+  | **問題** | expert 分布在多張 GPU 時，token 要跨 device 傳輸，造成延遲   |
+  | **目標** | 降低 MoE 的跨 device 通訊成本                        |
+  | **做法** | 限制每個 token 的 expert 僅選自最多 M 張卡               |
+  | **選法** | 先選 token 與其最相符的 M 張卡 → 再在這些卡上選 top-K experts |
+  | **效果** | 當 M ≥ 3 時，效能接近原始 top-K routing，但通訊大幅下降       |
+
 
 
 ## high-flyer
